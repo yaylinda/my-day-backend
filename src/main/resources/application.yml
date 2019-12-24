@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: my-day-backend
+  profiles:
+    active: "local"
+
+info:
+  app:
+    name: My Day Backend
+    description:
+    version: 1.0.0
+
+---
+
+spring:
+  profiles: local
+
+application:
+  mongo:
+    host: localhost
+    port: 27017
+    databaseName: myDayDb
+
+---
+
+spring:
+  profiles: dev
+
+---
+
+spring:
+  profiles: qa
+
+---
+
+spring:
+  profiles: prod
+
