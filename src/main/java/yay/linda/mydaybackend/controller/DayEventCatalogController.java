@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("")
 @CrossOrigin
-public class UserController {
+public class DayEventCatalogController {
 }
