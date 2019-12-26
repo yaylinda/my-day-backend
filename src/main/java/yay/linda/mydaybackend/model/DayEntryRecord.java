@@ -3,7 +3,6 @@ package yay.linda.mydaybackend.model;
 import lombok.Data;
 import yay.linda.mydaybackend.entity.EntryRecord;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
