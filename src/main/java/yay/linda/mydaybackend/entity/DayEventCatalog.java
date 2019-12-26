@@ -9,7 +9,7 @@ public class DayEventCatalog {
 
     @Id
     private String dayEventCatalogId; // UUID for a unique DayEventCatalog Entity
-    private String belongsTo; // User.id of the user that created this
+    private String belongsTo; // username of the user that created this
 
     private EventType type;
     private String name;

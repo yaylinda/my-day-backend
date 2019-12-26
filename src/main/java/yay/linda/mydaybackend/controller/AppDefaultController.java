@@ -16,11 +16,11 @@ import java.util.Map;
 
 import static yay.linda.mydaybackend.web.error.ErrorMessages.UNEXPECTED_ERROR;
 
-@Api(tags = "Default Controller")
+@Api(tags = "Application Default Controller")
 @RestController
 @RequestMapping("")
 @CrossOrigin
-public class DefaultController {
+public class AppDefaultController {
 
     @ApiOperation(value = "Health check endpoint")
     @ApiResponses(value = {

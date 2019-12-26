@@ -5,9 +5,9 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api(tags = "Default Controller")
+@Api(tags = "Day Event Catalog Controller")
 @RestController
-@RequestMapping("")
+@RequestMapping("/day-event-catalog")
 @CrossOrigin
 public class DayEventCatalogController {
 }
