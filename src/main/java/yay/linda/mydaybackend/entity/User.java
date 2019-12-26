@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class Person {
+public class User {
     @Id
-    private String id;
-    private String name;
+    private String id; // UUID used in database to track unique user. Used in Session.userId
+    private String username; // Friendly display username
     private Map<String, Day> daysData;
     private LocalDateTime joinedDate;
     private LocalDateTime lastActiveDate;

@@ -7,12 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-public class DayEntryRecord {
-    // copied from EntryRecord.class
-    private EntryRecordType entryRecordType;
-    private String name;
-    private String color;
-
+public class DayEntryRecord extends EntryRecord {
     // other fields
     private LocalDateTime startTime;
     private LocalDateTime endTime;

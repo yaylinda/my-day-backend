@@ -11,5 +11,6 @@ public class EntryRecord {
     private EntryRecordType entryRecordType;
     private String name;
     private String color;
+    private String icon;
     private String creator; // username of person who created it
 }

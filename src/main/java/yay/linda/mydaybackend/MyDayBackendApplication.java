@@ -5,8 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @SpringBootApplication
-//@EnableMongoRepositories(basePackages = "yay.linda.mydaybackend.repository")
-
+@EnableMongoRepositories(basePackages = "yay.linda.mydaybackend.repository")
 public class MyDayBackendApplication {
 
 	public static void main(String[] args) {
