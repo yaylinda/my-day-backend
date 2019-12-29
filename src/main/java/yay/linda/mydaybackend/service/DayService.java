@@ -40,8 +40,11 @@ public class DayService {
         LocalDate today = LocalDate.now();
 
         if (optionalDay.isPresent()) {
+            LOGGER.info("Found latest Day data");
 
             if (!optionalDay.get().getDate().equals(today.format(YEAR_MONTH_DAY_FORMATTER))) {
+                LOGGER.info("Latest Day date {} does not equal today's date {}. Catching up...",
+                        optionalDay.get().getDate(), today.format(YEAR_MONTH_DAY_FORMATTER));
 
                 LocalDate latest = LocalDate.parse(optionalDay.get().getDate(), YEAR_MONTH_DAY_FORMATTER);
 
@@ -49,13 +52,17 @@ public class DayService {
 
                 while (latest.isBefore(today)) {
                     LocalDate toSave = latest.plusDays(1);
+                    LOGGER.info("Saving placeholder Day for date={}", toSave.format(YEAR_MONTH_DAY_FORMATTER));
                     daysToSave.add(new Day(toSave.format(YEAR_MONTH_DAY_FORMATTER), username));
                 }
 
                 dayRepository.saveAll(daysToSave);
+            } else {
+                LOGGER.info("Latest Day date is today");
             }
-
         } else {
+            LOGGER.info("No Day data ");
+
             Day day = new Day(today.format(YEAR_MONTH_DAY_FORMATTER), username);
             dayRepository.save(day);
         }

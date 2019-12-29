@@ -1,6 +1,8 @@
 package yay.linda.mydaybackend.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.model.DayEventDTO;
@@ -14,6 +16,8 @@ import java.util.UUID;
 import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Day {
 
     @Id
