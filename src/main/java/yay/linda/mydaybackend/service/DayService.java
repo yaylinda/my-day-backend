@@ -33,4 +33,30 @@ public class DayService {
 
         return days.stream().map(DayDTO::new).collect(Collectors.toList());
     }
+
+    public DayDTO createDay(DayDTO dayDTO, String sessionToken) {
+        String username = sessionService.getUsernameFromSessionToken(sessionToken);
+
+        // TODO - validate dayDTO: date must not exist
+
+        Day day = new Day(dayDTO, true);
+        dayRepository.save(day);
+
+        LOGGER.info("Persisted DayEntity for {} with dayId={}, date={}", username, day.getDayId(), day.getDate());
+
+        return dayDTO;
+    }
+
+    public DayDTO updateDay(String dayId, DayDTO dayDTO, String sessionToken) {
+        String username = sessionService.getUsernameFromSessionToken(sessionToken);
+
+        // TODO - validate dayDTO: dayId and date must exist
+
+        Day day = new Day(dayDTO, false);
+        dayRepository.save(day);
+
+        LOGGER.info("Updated DayEntity for {} with dayId={}, date={}", username, day.getDayId(), day.getDate());
+
+        return dayDTO;
+    }
 }

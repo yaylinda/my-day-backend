@@ -11,6 +11,7 @@ public class DayPromptCatalog {
     @Id
     private String dayPromptCatalogId;
     private String belongsTo;
+
     private String question;
     private List<String> answers;
     private String selectedAnswer;

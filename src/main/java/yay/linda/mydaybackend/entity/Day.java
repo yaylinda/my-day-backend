@@ -2,10 +2,12 @@ package yay.linda.mydaybackend.entity;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.model.DayEventDTO;
 import yay.linda.mydaybackend.model.DayPromptDTO;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 public class Day {
@@ -17,4 +19,16 @@ public class Day {
 
     private List<DayEventDTO> events;
     private List<DayPromptDTO> prompts;
+
+    public Day(DayDTO dayDTO, boolean isNew) {
+        if (isNew) {
+            dayDTO.setDayId(UUID.randomUUID().toString());
+        }
+
+        this.dayId = dayDTO.getDayId();
+        this.date = dayDTO.getDate();
+        this.username = dayDTO.getUsername();
+        this.events = dayDTO.getEvents();
+        this.prompts = dayDTO.getPrompts();
+    }
 }

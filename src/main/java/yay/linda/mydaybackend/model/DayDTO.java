@@ -15,6 +15,10 @@ public class DayDTO {
     private List<DayPromptDTO> prompts;
 
     public DayDTO(Day day) {
-
+        this.dayId = day.getDayId();
+        this.date = day.getDate();
+        this.username = day.getUsername();
+        this.events = day.getEvents();
+        this.prompts = day.getPrompts();
     }
 }
