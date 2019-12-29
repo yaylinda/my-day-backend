@@ -10,4 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/day-event-catalog")
 @CrossOrigin
 public class DayEventCatalogController {
+
+
 }

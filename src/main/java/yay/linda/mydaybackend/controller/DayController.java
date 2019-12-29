@@ -10,4 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/days")
 @CrossOrigin
 public class DayController {
+
+
 }
