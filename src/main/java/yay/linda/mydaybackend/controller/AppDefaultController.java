@@ -22,12 +22,12 @@ import static yay.linda.mydaybackend.web.error.ErrorMessages.UNEXPECTED_ERROR;
 @CrossOrigin
 public class AppDefaultController {
 
+    @GetMapping(value = "/health", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Health check endpoint")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successful health check"),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    @GetMapping(value = "/health", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, String>> healthCheck() {
         return ResponseEntity.ok(Map.of("status", "OK"));
     }

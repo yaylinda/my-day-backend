@@ -6,8 +6,12 @@ import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.model.DayEventDTO;
 import yay.linda.mydaybackend.model.DayPromptDTO;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
 
 @Data
 public class Day {
@@ -30,5 +34,13 @@ public class Day {
         this.username = dayDTO.getUsername();
         this.events = dayDTO.getEvents();
         this.prompts = dayDTO.getPrompts();
+    }
+
+    public Day(String date, String username) {
+        this.dayId = UUID.randomUUID().toString();
+        this.date = date;
+        this.username = username;
+        this.events = new ArrayList<>();
+        this.prompts = new ArrayList<>();
     }
 }

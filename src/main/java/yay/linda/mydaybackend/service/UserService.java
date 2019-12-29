@@ -102,12 +102,14 @@ public class UserService {
 
     private boolean verifyPassword(String username, String password) {
         User user = userRepository.findByUsername(username).get();
-        return BCrypt.checkpw(password, user.getPassword());
+        // TODO - uncomment BCrypt later
+//        return BCrypt.checkpw(password, user.getPassword());
+        return password.equals(user.getPassword());
     }
 
     private void createUser(RegisterRequest registerRequest, Boolean isGuest) {
         LOGGER.info("Creating new User: {}", registerRequest);
-        User user = new User(registerRequest);
+        User user = new User(registerRequest.getUsername(), registerRequest.getPassword());
         userRepository.save(user);
     }
 }

@@ -8,9 +8,15 @@ import yay.linda.mydaybackend.entity.Day;
 import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.repository.DayRepository;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
+import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
 
 @Service
 public class DayService {
@@ -25,10 +31,37 @@ public class DayService {
 
     // issue might arrise later where a user will have many Days. we should not have to load the entire list.
     // user query params for pagination
+    // for now, limit to 10 days
     public List<DayDTO> getDays(String sessionToken) {
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
-        List<Day> days = dayRepository.findByUsername(username);
+        Optional<Day> optionalDay = dayRepository.findTopByUsernameOrderByDateDesc(username);
+
+        LocalDate today = LocalDate.now();
+
+        if (optionalDay.isPresent()) {
+
+            if (!optionalDay.get().getDate().equals(today.format(YEAR_MONTH_DAY_FORMATTER))) {
+
+                LocalDate latest = LocalDate.parse(optionalDay.get().getDate(), YEAR_MONTH_DAY_FORMATTER);
+
+                List<Day> daysToSave = new ArrayList<>();
+
+                while (latest.isBefore(today)) {
+                    LocalDate toSave = latest.plusDays(1);
+                    daysToSave.add(new Day(toSave.format(YEAR_MONTH_DAY_FORMATTER), username));
+                }
+
+                dayRepository.saveAll(daysToSave);
+            }
+
+        } else {
+            Day day = new Day(today.format(YEAR_MONTH_DAY_FORMATTER), username);
+            dayRepository.save(day);
+        }
+
+        List<Day> days = dayRepository.findTop10ByUsernameOrderByDateDesc(username);
+
         LOGGER.info("Found {} days for {}", days.size(), username);
 
         return days.stream().map(DayDTO::new).collect(Collectors.toList());

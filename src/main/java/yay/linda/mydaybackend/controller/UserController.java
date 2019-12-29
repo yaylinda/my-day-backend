@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,27 +31,27 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/{sessionToken}")
+    @GetMapping(value = "/{sessionToken}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> getUserFromSessionToken(@PathVariable("sessionToken") String sessionToken) {
         LOGGER.info("GET USER from sessionToken request: sessionToken={}", sessionToken);
         return ResponseEntity.ok(userService.getUserFromSessionToken(sessionToken));
     }
 
-    @PostMapping("/register")
+    @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> register(
             @RequestBody RegisterRequest registerRequest,
             @RequestParam(value = "isGuest", defaultValue = "false") Boolean isGuest) {
         LOGGER.info("REGISTER request: {}, isGuest: {}", registerRequest, isGuest);
-        return new ResponseEntity(userService.register(registerRequest, isGuest), HttpStatus.CREATED);
+        return new ResponseEntity<UserDTO>(userService.register(registerRequest, isGuest), HttpStatus.CREATED);
     }
 
-    @PostMapping("/login")
+    @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> login(@RequestBody LoginRequest loginRequest) {
         LOGGER.info("LOGIN request: {}", loginRequest);
         return ResponseEntity.ok(userService.login(loginRequest));
     }
 
-    @GetMapping("/logout/{sessionToken}")
+    @GetMapping(value = "/logout/{sessionToken}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> logout(@PathVariable("sessionToken") String sessionToken) {
         LOGGER.info("LOGOUT request: sessionToken={}", sessionToken);
         return ResponseEntity.ok(userService.logout(sessionToken));

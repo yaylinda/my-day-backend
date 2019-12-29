@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +42,7 @@ public class DayController {
     @Autowired
     private DayService dayService;
 
-    @GetMapping("")
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Retrieve all Days for a User, given a valid Session-Token")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully retrieved Days"),
@@ -55,7 +56,7 @@ public class DayController {
         return ResponseEntity.ok(dayService.getDays(sessionToken));
     }
 
-    @PostMapping("")
+    @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Successfully persisted a DayDTO for a User, given a valid Session-Token")
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Successfully created Day"),
@@ -71,7 +72,7 @@ public class DayController {
         return new ResponseEntity<>(dayService.createDay(dayDTO, sessionToken), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{dayId}")
+    @PutMapping(value = "/{dayId}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Successfully updated a DayDTO for a User, given a valid Session-Token")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully updated Day"),

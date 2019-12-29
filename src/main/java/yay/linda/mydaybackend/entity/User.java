@@ -22,10 +22,10 @@ public class User {
 
     private Map<String, Object> userConfigurations;
 
-    public User(RegisterRequest registerRequest) {
+    public User(String username, String password) {
         this.userId = UUID.randomUUID().toString();
-        this.username = registerRequest.getUsername();
-        this.password = registerRequest.getPassword();
+        this.username = username;
+        this.password = password;
         this.joinedDate = LocalDateTime.now();
         this.lastActiveDate = LocalDateTime.now();
         this.userConfigurations = new HashMap<>();
