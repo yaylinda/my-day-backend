@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class DayEventCatalogService {
@@ -39,4 +40,24 @@ public class DayEventCatalogService {
         return catalogs;
     }
 
+    public List<DayEventCatalog> addDayEvent(String eventType, DayEventCatalog dayEvent, String sessionToken) {
+
+        String username = sessionService.getUsernameFromSessionToken(sessionToken);
+
+        // TODO - validate eventType, and fields of dayEvent
+
+        dayEvent.setDayEventCatalogId(UUID.randomUUID().toString());
+        dayEvent.setBelongsTo(username);
+        dayEvent.setType(EventType.valueOf(eventType));
+
+        dayEventCatalogRepository.save(dayEvent);
+        LOGGER.info("Persisted new DayEvent: {}", dayEvent);
+
+        List<DayEventCatalog> list = dayEventCatalogRepository.findByBelongsToAndType(username, dayEvent.getType());
+        LOGGER.info("Found {} DayEvents for {} of type {}", list.size(), username, dayEvent.getType());
+
+        return list;
+    }
+
+    // TODO - implement update day event
 }

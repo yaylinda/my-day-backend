@@ -12,6 +12,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,4 +55,23 @@ public class DayEventCatalogController {
         return ResponseEntity.ok(dayEventCatalogService.getCatalogs(sessionToken));
     }
 
+    @PostMapping(value = "/{eventType}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Add a Day Event to the Catalog, given a valid Session-Token")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Successfully added a Day Event to the Catalog"),
+            @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
+            @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
+    })
+    public ResponseEntity<List<DayEventCatalog>> addDayEvent(
+            @ApiParam(value = "Session-Token", required = true)
+            @RequestHeader("Session-Token") String sessionToken,
+            @ApiParam(value = "eventType", required = true)
+            @PathVariable(value = "eventType") String eventType,
+            @ApiParam(value = "dayEvent", required = true)
+            @RequestBody DayEventCatalog dayEvent) {
+        LOGGER.info("POST Day Event Catalog request: eventType={}, dayEvent={}, sessionToken={}", eventType, dayEvent, sessionToken);
+        return ResponseEntity.ok(dayEventCatalogService.addDayEvent(eventType, dayEvent, sessionToken));
+    }
+
+    // TODO - endpoint to update day event
 }
