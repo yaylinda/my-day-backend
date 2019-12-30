@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import yay.linda.mydaybackend.entity.Day;
 import yay.linda.mydaybackend.model.DayDTO;
+import yay.linda.mydaybackend.model.DayEmotionDTO;
 import yay.linda.mydaybackend.repository.DayRepository;
 
 import java.time.LocalDate;
@@ -51,9 +52,9 @@ public class DayService {
                 List<Day> daysToSave = new ArrayList<>();
 
                 while (latest.isBefore(today)) {
-                    LocalDate toSave = latest.plusDays(1);
-                    LOGGER.info("Saving placeholder Day for date={}", toSave.format(YEAR_MONTH_DAY_FORMATTER));
-                    daysToSave.add(new Day(toSave.format(YEAR_MONTH_DAY_FORMATTER), username));
+                    latest = latest.plusDays(1);
+                    LOGGER.info("Saving placeholder Day for date={}", latest.format(YEAR_MONTH_DAY_FORMATTER));
+                    daysToSave.add(new Day(latest.format(YEAR_MONTH_DAY_FORMATTER), username));
                 }
 
                 dayRepository.saveAll(daysToSave);
@@ -87,7 +88,7 @@ public class DayService {
         return dayDTO;
     }
 
-    public DayDTO updateDay(String dayId, DayDTO dayDTO, String sessionToken) {
+    public DayDTO updateDay(String dayId, String eventType, DayEmotionDTO dayEmotionDTO, String sessionToken) {
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         // TODO - validate dayDTO: dayId and date must exist

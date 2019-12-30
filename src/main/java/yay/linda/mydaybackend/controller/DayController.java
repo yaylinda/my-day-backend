@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yay.linda.mydaybackend.model.DayDTO;
+import yay.linda.mydaybackend.model.DayEmotionDTO;
 import yay.linda.mydaybackend.model.UserDTO;
 import yay.linda.mydaybackend.service.DayService;
 import yay.linda.mydaybackend.web.error.ErrorDTO;
@@ -72,8 +73,8 @@ public class DayController {
         return new ResponseEntity<>(dayService.createDay(dayDTO, sessionToken), HttpStatus.CREATED);
     }
 
-    @PutMapping(value = "/{dayId}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Successfully updated a DayDTO for a User, given a valid Session-Token")
+    @PutMapping(value = "/{dayId}/{eventType}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Successfully added a DayEvent to a Day given a valid Session-Token")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully updated Day"),
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
@@ -83,11 +84,15 @@ public class DayController {
     public ResponseEntity<DayDTO> updateDay(
             @ApiParam(value = "dayId", required = true)
             @PathVariable(value="dayId") String dayId,
+            @ApiParam(value = "eventType", required = true)
+            @PathVariable(value="eventType") String eventType,
             @ApiParam(value = "dayDTO", required = true)
-            @RequestBody DayDTO dayDTO,
+            @RequestBody DayEmotionDTO dayEmotionDTO,
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
-        LOGGER.info("PUT day request: dayId={}, dayDTO={}, sessionToken={}", dayId, dayDTO, sessionToken);
-        return new ResponseEntity<>(dayService.updateDay(dayId, dayDTO, sessionToken), HttpStatus.OK);
+
+        LOGGER.info("PUT day request: dayId={}, eventType={}, dayEmotionDTO={}, sessionToken={}",
+                dayId, eventType, dayEmotionDTO, sessionToken);
+        return new ResponseEntity<>(dayService.updateDay(dayId, eventType, dayEmotionDTO, sessionToken), HttpStatus.OK);
     }
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import yay.linda.mydaybackend.model.DayDTO;
+import yay.linda.mydaybackend.model.DayEmotionDTO;
 import yay.linda.mydaybackend.model.DayEventDTO;
 import yay.linda.mydaybackend.model.DayPromptDTO;
 
@@ -27,6 +28,7 @@ public class Day {
 
     private List<DayEventDTO> events;
     private List<DayPromptDTO> prompts;
+    private List<DayEmotionDTO> emotions;
 
     public Day(DayDTO dayDTO, boolean isNew) {
         if (isNew) {
@@ -38,6 +40,7 @@ public class Day {
         this.username = dayDTO.getUsername();
         this.events = dayDTO.getEvents();
         this.prompts = dayDTO.getPrompts();
+        this.emotions = dayDTO.getEmotions();
     }
 
     public Day(String date, String username) {
@@ -46,5 +49,6 @@ public class Day {
         this.username = username;
         this.events = new ArrayList<>();
         this.prompts = new ArrayList<>();
+        this.emotions = new ArrayList<>();
     }
 }
