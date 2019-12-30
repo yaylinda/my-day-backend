@@ -61,7 +61,7 @@ public class DayService {
                 LOGGER.info("Latest Day date is today");
             }
         } else {
-            LOGGER.info("No Day data ");
+            LOGGER.info("No Day data. Saving placeholder Day for today={}", today.format(YEAR_MONTH_DAY_FORMATTER));
 
             Day day = new Day(today.format(YEAR_MONTH_DAY_FORMATTER), username);
             dayRepository.save(day);
