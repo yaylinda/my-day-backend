@@ -32,7 +32,7 @@ import static yay.linda.mydaybackend.web.error.ErrorMessages.UNEXPECTED_ERROR;
 
 @Api(tags = "Day Event Catalog Controller")
 @RestController
-@RequestMapping("/catalog/events")
+@RequestMapping("/catalog/activities")
 @CrossOrigin
 public class DayEventCatalogController {
 

@@ -3,7 +3,7 @@ package yay.linda.mydaybackend.model;
 import lombok.Data;
 
 @Data
-public class DayEmotionDTO extends DayEventDTO {
+public class DayEmotionDTO extends DayActivitiesDTO {
     private Integer emotionScore;
     private String description;
 

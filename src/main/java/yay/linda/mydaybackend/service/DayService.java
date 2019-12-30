@@ -5,16 +5,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import yay.linda.mydaybackend.entity.Day;
+import yay.linda.mydaybackend.model.DayActivityDTO;
 import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.model.DayEmotionDTO;
+import yay.linda.mydaybackend.model.DayActivitiesDTO;
+import yay.linda.mydaybackend.model.DayPromptDTO;
+import yay.linda.mydaybackend.model.EventType;
 import yay.linda.mydaybackend.repository.DayRepository;
+import yay.linda.mydaybackend.web.error.NotFoundException;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
@@ -88,16 +91,38 @@ public class DayService {
         return dayDTO;
     }
 
-    public DayDTO updateDay(String dayId, String eventType, DayEmotionDTO dayEmotionDTO, String sessionToken) {
+    public <T extends DayActivitiesDTO> DayDTO  updateDay(String dayId, String eventType, T dayEventDTO, String sessionToken) {
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         // TODO - validate dayDTO: dayId and date must exist
 
-        Day day = new Day(dayDTO, false);
-        dayRepository.save(day);
+        Optional<Day> optionalDay = dayRepository.findById(dayId);
 
-        LOGGER.info("Updated DayEntity for {} with dayId={}, date={}", username, day.getDayId(), day.getDate());
+        if (optionalDay.isPresent()) {
+            Day day = optionalDay.get();
+            EventType type = EventType.valueOf(eventType);
 
-        return dayDTO;
+            switch (type) {
+                case ACTIVITY:
+                    DayActivityDTO newActivityDTO = ((DayActivityDTO) dayEventDTO);
+                    day.getActivities().add(newActivityDTO);
+                    break;
+                case EMOTION:
+                    DayEmotionDTO newEmotionDTO = ((DayEmotionDTO) dayEventDTO);
+                    day.getEmotions().add(newEmotionDTO);
+                    break;
+                case PROMPT:
+                    DayPromptDTO newPromptDTO = ((DayPromptDTO) dayEventDTO);
+                    day.getPrompts().add(newPromptDTO);
+                    break;
+            }
+
+            dayRepository.save(day);
+            LOGGER.info("Updated DayEntity for {} with dayId={}, date={}", username, day.getDayId(), day.getDate());
+
+            return new DayDTO(day);
+        } else {
+            throw new NotFoundException(String.format("Day with dayId=%s does not exist for user %s", dayId, username));
+        }
     }
 }

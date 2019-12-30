@@ -3,6 +3,6 @@ package yay.linda.mydaybackend.model;
 import lombok.Data;
 
 @Data
-public class DayEventDTO {
+public class DayActivitiesDTO {
 
 }

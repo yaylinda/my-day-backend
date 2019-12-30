@@ -15,7 +15,7 @@ public class DayDTO {
     private String dayId; // UUID for a Day Entity
     private String date; // YYYY-MM-DD format
     private String username; // username that created the Day
-    private List<DayEventDTO> events;
+    private List<DayActivitiesDTO> activities;
     private List<DayPromptDTO> prompts;
     private List<DayEmotionDTO> emotions;
 
@@ -23,7 +23,7 @@ public class DayDTO {
         this.dayId = day.getDayId();
         this.date = day.getDate();
         this.username = day.getUsername();
-        this.events = day.getEvents();
+        this.activities = day.getActivities();
         this.prompts = day.getPrompts();
         this.emotions = day.getEmotions();
     }

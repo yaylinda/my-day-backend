@@ -6,15 +6,12 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.model.DayEmotionDTO;
-import yay.linda.mydaybackend.model.DayEventDTO;
+import yay.linda.mydaybackend.model.DayActivitiesDTO;
 import yay.linda.mydaybackend.model.DayPromptDTO;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
 
 @Data
 @NoArgsConstructor
@@ -26,7 +23,7 @@ public class Day {
     private String date; // YYYY-MM-DD format
     private String username; // username that created the Day
 
-    private List<DayEventDTO> events;
+    private List<DayActivitiesDTO> activities;
     private List<DayPromptDTO> prompts;
     private List<DayEmotionDTO> emotions;
 
@@ -38,7 +35,7 @@ public class Day {
         this.dayId = dayDTO.getDayId();
         this.date = dayDTO.getDate();
         this.username = dayDTO.getUsername();
-        this.events = dayDTO.getEvents();
+        this.activities = dayDTO.getActivities();
         this.prompts = dayDTO.getPrompts();
         this.emotions = dayDTO.getEmotions();
     }
@@ -47,7 +44,7 @@ public class Day {
         this.dayId = UUID.randomUUID().toString();
         this.date = date;
         this.username = username;
-        this.events = new ArrayList<>();
+        this.activities = new ArrayList<>();
         this.prompts = new ArrayList<>();
         this.emotions = new ArrayList<>();
     }
