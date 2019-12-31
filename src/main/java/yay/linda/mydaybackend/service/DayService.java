@@ -112,7 +112,7 @@ public class DayService {
                             .endTime(dayEvent.getEndTime())
                             .icon(dayEvent.getIcon())
                             .name(dayEvent.getName())
-                            .name(dayEvent.getStartTime())
+                            .startTime(dayEvent.getStartTime())
                             .build();
                     day.getActivities().add(newActivityDTO);
                     LOGGER.info("Adding ACTIVITY to day");
