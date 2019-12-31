@@ -5,10 +5,10 @@ import org.springframework.data.annotation.Id;
 import yay.linda.mydaybackend.model.EventType;
 
 @Data
-public class DayEventCatalog {
+public class DayActivityCatalog {
 
     @Id
-    private String dayEventCatalogId; // UUID for a unique DayEventCatalog Entity
+    private String dayEventCatalogId; // UUID for a unique DayActivityCatalog Entity
     private String belongsTo; // username of the user that created this
 
     private EventType type;

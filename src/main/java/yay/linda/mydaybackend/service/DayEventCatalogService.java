@@ -4,9 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import yay.linda.mydaybackend.entity.DayEventCatalog;
+import yay.linda.mydaybackend.entity.DayActivityCatalog;
 import yay.linda.mydaybackend.model.EventType;
-import yay.linda.mydaybackend.repository.DayEventCatalogRepository;
+import yay.linda.mydaybackend.repository.DayActivityCatalogRepository;
+import yay.linda.mydaybackend.repository.DayPromptCatalogRepository;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,16 +24,19 @@ public class DayEventCatalogService {
     private SessionService sessionService;
 
     @Autowired
-    private DayEventCatalogRepository dayEventCatalogRepository;
+    private DayActivityCatalogRepository dayActivityCatalogRepository;
 
-    public Map<String, List<DayEventCatalog>> getCatalogs(String sessionToken) {
+    @Autowired
+    private DayPromptCatalogRepository dayPromptCatalogRepository;
+
+    public Map<String, List<DayActivityCatalog>> getCatalogs(String sessionToken) {
 
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
-        Map<String, List<DayEventCatalog>> catalogs = new HashMap<>();
+        Map<String, List<DayActivityCatalog>> catalogs = new HashMap<>();
 
         Arrays.stream(EventType.values()).forEach(t -> {
-            List<DayEventCatalog> list = dayEventCatalogRepository.findByBelongsToAndType(username, t);
+            List<DayActivityCatalog> list = dayActivityCatalogRepository.findByBelongsToAndType(username, t);
             LOGGER.info("Found {} DayEvents for {} of type {}", list.size(), username, t);
             catalogs.put(t.name(), list);
         });
@@ -40,20 +44,21 @@ public class DayEventCatalogService {
         return catalogs;
     }
 
-    public List<DayEventCatalog> addDayEvent(String eventType, DayEventCatalog dayEvent, String sessionToken) {
+    public List<DayActivityCatalog> addDayEvent(String eventType, DayActivityCatalog dayEvent, String sessionToken) {
 
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         // TODO - validate eventType, and fields of dayEvent
+        // TODO - implement add PROMPT type
 
         dayEvent.setDayEventCatalogId(UUID.randomUUID().toString());
         dayEvent.setBelongsTo(username);
         dayEvent.setType(EventType.valueOf(eventType));
 
-        dayEventCatalogRepository.save(dayEvent);
+        dayActivityCatalogRepository.save(dayEvent);
         LOGGER.info("Persisted new DayEvent: {}", dayEvent);
 
-        List<DayEventCatalog> list = dayEventCatalogRepository.findByBelongsToAndType(username, dayEvent.getType());
+        List<DayActivityCatalog> list = dayActivityCatalogRepository.findByBelongsToAndType(username, dayEvent.getType());
         LOGGER.info("Found {} DayEvents for {} of type {}", list.size(), username, dayEvent.getType());
 
         return list;
