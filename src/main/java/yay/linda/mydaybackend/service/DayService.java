@@ -8,7 +8,7 @@ import yay.linda.mydaybackend.entity.Day;
 import yay.linda.mydaybackend.model.DayActivityDTO;
 import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.model.DayEmotionDTO;
-import yay.linda.mydaybackend.model.DayActivitiesDTO;
+import yay.linda.mydaybackend.model.DayEventDTO;
 import yay.linda.mydaybackend.model.DayPromptDTO;
 import yay.linda.mydaybackend.model.EventType;
 import yay.linda.mydaybackend.repository.DayRepository;
@@ -91,10 +91,10 @@ public class DayService {
         return dayDTO;
     }
 
-    public <T extends DayActivitiesDTO> DayDTO  updateDay(String dayId, String eventType, T dayEventDTO, String sessionToken) {
+    public <T extends DayEventDTO> DayDTO updateDay(String dayId, String eventType, T dayEvent, String sessionToken) {
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
-        // TODO - validate dayDTO: dayId and date must exist
+        // TODO - validate eventType
 
         Optional<Day> optionalDay = dayRepository.findById(dayId);
 
@@ -102,18 +102,23 @@ public class DayService {
             Day day = optionalDay.get();
             EventType type = EventType.valueOf(eventType);
 
+            LOGGER.info("Found day with dayId={}", dayId);
+
             switch (type) {
                 case ACTIVITY:
-                    DayActivityDTO newActivityDTO = ((DayActivityDTO) dayEventDTO);
+                    DayActivityDTO newActivityDTO = ((DayActivityDTO) dayEvent);
                     day.getActivities().add(newActivityDTO);
+                    LOGGER.info("Adding ACTIVITY to day");
                     break;
                 case EMOTION:
-                    DayEmotionDTO newEmotionDTO = ((DayEmotionDTO) dayEventDTO);
+                    DayEmotionDTO newEmotionDTO = ((DayEmotionDTO) dayEvent);
                     day.getEmotions().add(newEmotionDTO);
+                    LOGGER.info("Adding EMOTION to day");
                     break;
                 case PROMPT:
-                    DayPromptDTO newPromptDTO = ((DayPromptDTO) dayEventDTO);
+                    DayPromptDTO newPromptDTO = ((DayPromptDTO) dayEvent);
                     day.getPrompts().add(newPromptDTO);
+                    LOGGER.info("Adding PROMPT to day");
                     break;
             }
 

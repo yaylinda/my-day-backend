@@ -19,9 +19,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yay.linda.mydaybackend.entity.DayEventCatalog;
-import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.service.DayEventCatalogService;
-import yay.linda.mydaybackend.service.DayService;
 import yay.linda.mydaybackend.web.error.ErrorDTO;
 
 import java.util.List;
@@ -30,13 +28,13 @@ import java.util.Map;
 import static yay.linda.mydaybackend.web.error.ErrorMessages.UNAUTHORIZED;
 import static yay.linda.mydaybackend.web.error.ErrorMessages.UNEXPECTED_ERROR;
 
-@Api(tags = "Day Event Catalog Controller")
+@Api(tags = "Day Activity Catalog Controller")
 @RestController
 @RequestMapping("/catalog/activities")
 @CrossOrigin
-public class DayEventCatalogController {
+public class DayActivityCatalogController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DayEventCatalogController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DayActivityCatalogController.class);
 
     @Autowired
     private DayEventCatalogService dayEventCatalogService;

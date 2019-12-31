@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.model.DayEmotionDTO;
+import yay.linda.mydaybackend.model.DayEventDTO;
 import yay.linda.mydaybackend.model.UserDTO;
 import yay.linda.mydaybackend.service.DayService;
 import yay.linda.mydaybackend.web.error.ErrorDTO;
@@ -74,7 +75,7 @@ public class DayController {
     }
 
     @PutMapping(value = "/{dayId}/{eventType}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Successfully added a DayEvent to a Day given a valid Session-Token")
+    @ApiOperation(value = "Successfully added a DayEvent to a Day given a valid dayId and Session-Token")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully updated Day"),
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
@@ -86,13 +87,13 @@ public class DayController {
             @PathVariable(value="dayId") String dayId,
             @ApiParam(value = "eventType", required = true)
             @PathVariable(value="eventType") String eventType,
-            @ApiParam(value = "dayDTO", required = true)
-            @RequestBody DayEmotionDTO dayEmotionDTO,
+            @ApiParam(value = "dayEvent", required = true)
+            @RequestBody DayEventDTO dayEvent,
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
 
-        LOGGER.info("PUT day request: dayId={}, eventType={}, dayEmotionDTO={}, sessionToken={}",
-                dayId, eventType, dayEmotionDTO, sessionToken);
-        return new ResponseEntity<>(dayService.updateDay(dayId, eventType, dayEmotionDTO, sessionToken), HttpStatus.OK);
+        LOGGER.info("PUT day request: dayId={}, eventType={}, dayEvent={}, sessionToken={}",
+                dayId, eventType, dayEvent, sessionToken);
+        return new ResponseEntity<>(dayService.updateDay(dayId, eventType, dayEvent, sessionToken), HttpStatus.OK);
     }
 }
