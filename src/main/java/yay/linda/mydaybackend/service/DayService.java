@@ -91,7 +91,7 @@ public class DayService {
         return dayDTO;
     }
 
-    public <T extends DayEventDTO> DayDTO updateDay(String dayId, String eventType, T dayEvent, String sessionToken) {
+    public DayDTO updateDay(String dayId, String eventType, DayEventDTO dayEvent, String sessionToken) {
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         // TODO - validate eventType
@@ -106,17 +106,29 @@ public class DayService {
 
             switch (type) {
                 case ACTIVITY:
-                    DayActivityDTO newActivityDTO = ((DayActivityDTO) dayEvent);
+                    DayActivityDTO newActivityDTO = DayActivityDTO.builder()
+                            .color(dayEvent.getColor())
+                            .description(dayEvent.getDescription())
+                            .endTime(dayEvent.getEndTime())
+                            .icon(dayEvent.getIcon())
+                            .name(dayEvent.getName())
+                            .name(dayEvent.getStartTime())
+                            .build();
                     day.getActivities().add(newActivityDTO);
                     LOGGER.info("Adding ACTIVITY to day");
                     break;
                 case EMOTION:
-                    DayEmotionDTO newEmotionDTO = ((DayEmotionDTO) dayEvent);
+                    DayEmotionDTO newEmotionDTO = DayEmotionDTO.builder()
+                            .description(dayEvent.getDescription())
+                            .emotionScore(dayEvent.getEmotionScore())
+                            .endTime(dayEvent.getEndTime())
+                            .startTime(dayEvent.getStartTime())
+                            .build();
                     day.getEmotions().add(newEmotionDTO);
                     LOGGER.info("Adding EMOTION to day");
                     break;
                 case PROMPT:
-                    DayPromptDTO newPromptDTO = ((DayPromptDTO) dayEvent);
+                    DayPromptDTO newPromptDTO = new DayPromptDTO(); // TODO - implement
                     day.getPrompts().add(newPromptDTO);
                     LOGGER.info("Adding PROMPT to day");
                     break;

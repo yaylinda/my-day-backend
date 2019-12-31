@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import yay.linda.mydaybackend.model.DayActivityDTO;
 import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.model.DayEmotionDTO;
 import yay.linda.mydaybackend.model.DayEventDTO;
@@ -23,7 +24,7 @@ public class Day {
     private String date; // YYYY-MM-DD format
     private String username; // username that created the Day
 
-    private List<DayEventDTO> activities;
+    private List<DayActivityDTO> activities;
     private List<DayPromptDTO> prompts;
     private List<DayEmotionDTO> emotions;
 

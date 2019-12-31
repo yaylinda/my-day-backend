@@ -15,7 +15,7 @@ public class DayDTO {
     private String dayId; // UUID for a Day Entity
     private String date; // YYYY-MM-DD format
     private String username; // username that created the Day
-    private List<DayEventDTO> activities;
+    private List<DayActivityDTO> activities;
     private List<DayPromptDTO> prompts;
     private List<DayEmotionDTO> emotions;
 

@@ -1,9 +1,15 @@
 package yay.linda.mydaybackend.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class DayEmotionDTO extends DayEventDTO {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class DayEmotionDTO {
     private Integer emotionScore;
     private String description;
 
