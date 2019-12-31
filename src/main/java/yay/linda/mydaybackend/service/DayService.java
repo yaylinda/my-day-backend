@@ -16,6 +16,7 @@ import yay.linda.mydaybackend.web.error.NotFoundException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -75,7 +76,7 @@ public class DayService {
 
         LOGGER.info("Found {} days for {}", days.size(), username);
 
-        return days.stream().map(DayDTO::new).collect(Collectors.toList());
+        return days.stream().map(d -> new DayDTO(d, true)).collect(Collectors.toList());
     }
 
     public DayDTO createDay(DayDTO dayDTO, String sessionToken) {
@@ -137,7 +138,7 @@ public class DayService {
             dayRepository.save(day);
             LOGGER.info("Updated DayEntity for {} with dayId={}, date={}", username, day.getDayId(), day.getDate());
 
-            return new DayDTO(day);
+            return new DayDTO(day, true);
         } else {
             throw new NotFoundException(String.format("Day with dayId=%s does not exist for user %s", dayId, username));
         }

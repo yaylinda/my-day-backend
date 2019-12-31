@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import yay.linda.mydaybackend.entity.Day;
 
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -19,12 +20,18 @@ public class DayDTO {
     private List<DayPromptDTO> prompts;
     private List<DayEmotionDTO> emotions;
 
-    public DayDTO(Day day) {
+    public DayDTO(Day day, boolean reverse) {
         this.dayId = day.getDayId();
         this.date = day.getDate();
         this.username = day.getUsername();
         this.activities = day.getActivities();
         this.prompts = day.getPrompts();
         this.emotions = day.getEmotions();
+
+        if (reverse) {
+            Collections.reverse(this.activities);
+            Collections.reverse(this.prompts);
+            Collections.reverse(this.emotions);
+        }
     }
 }
