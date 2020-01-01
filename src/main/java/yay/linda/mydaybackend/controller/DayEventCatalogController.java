@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import yay.linda.mydaybackend.entity.DayActivityCatalog;
+import yay.linda.mydaybackend.model.CatalogEventDTO;
 import yay.linda.mydaybackend.service.DayEventCatalogService;
 import yay.linda.mydaybackend.web.error.ErrorDTO;
 
@@ -47,11 +47,11 @@ public class DayEventCatalogController {
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<Map<String, List<DayActivityCatalog>>> getCatalogs(
+    public ResponseEntity<Map<String, List<? extends CatalogEventDTO>>> getCatalogEvents(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
         LOGGER.info("GET Day Event Catalog request: sessionToken={}", sessionToken);
-        return ResponseEntity.ok(dayEventCatalogService.getCatalogs(sessionToken));
+        return ResponseEntity.ok(dayEventCatalogService.getCatalogEvents(sessionToken));
     }
 
     // TODO - handle DayPromptCatalog
@@ -62,15 +62,15 @@ public class DayEventCatalogController {
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<List<DayActivityCatalog>> addDayEvent(
+    public ResponseEntity<List<? extends CatalogEventDTO>> addCatalog(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken,
             @ApiParam(value = "eventType", required = true)
             @PathVariable(value = "eventType") String eventType,
-            @ApiParam(value = "dayEvent", required = true)
-            @RequestBody DayActivityCatalog dayEvent) {
-        LOGGER.info("POST Day Event Catalog request: eventType={}, dayEvent={}, sessionToken={}", eventType, dayEvent, sessionToken);
-        return ResponseEntity.ok(dayEventCatalogService.addDayEvent(eventType, dayEvent, sessionToken));
+            @ApiParam(value = "catalogEventDTO", required = true)
+            @RequestBody CatalogEventDTO catalogEventDTO) {
+        LOGGER.info("POST Day Event Catalog request: eventType={}, catalogEventDTO={}, sessionToken={}", eventType, catalogEventDTO, sessionToken);
+        return ResponseEntity.ok(dayEventCatalogService.addCatalogEvent(eventType, catalogEventDTO, sessionToken));
     }
 
     // TODO - endpoint to update day event
