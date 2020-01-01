@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import yay.linda.mydaybackend.model.CatalogEventDTO;
+import yay.linda.mydaybackend.entity.DayEventCatalog;
 import yay.linda.mydaybackend.service.DayEventCatalogService;
 import yay.linda.mydaybackend.web.error.ErrorDTO;
 
@@ -39,7 +39,6 @@ public class DayEventCatalogController {
     @Autowired
     private DayEventCatalogService dayEventCatalogService;
 
-    // TODO - handle DayPromptCatalog
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Retrieve Day Event Catalogs, given a valid Session-Token")
     @ApiResponses(value = {
@@ -47,14 +46,13 @@ public class DayEventCatalogController {
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<Map<String, List<? extends CatalogEventDTO>>> getCatalogEvents(
+    public ResponseEntity<Map<String, List<DayEventCatalog>>> getCatalogEvents(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
         LOGGER.info("GET Day Event Catalog request: sessionToken={}", sessionToken);
         return ResponseEntity.ok(dayEventCatalogService.getCatalogEvents(sessionToken));
     }
 
-    // TODO - handle DayPromptCatalog
     @PostMapping(value = "/{eventType}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Add a Day Event to the Catalog, given a valid Session-Token")
     @ApiResponses(value = {
@@ -62,15 +60,15 @@ public class DayEventCatalogController {
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<List<? extends CatalogEventDTO>> addCatalog(
+    public ResponseEntity<List<DayEventCatalog>> addCatalog(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken,
             @ApiParam(value = "eventType", required = true)
             @PathVariable(value = "eventType") String eventType,
-            @ApiParam(value = "catalogEventDTO", required = true)
-            @RequestBody CatalogEventDTO catalogEventDTO) {
-        LOGGER.info("POST Day Event Catalog request: eventType={}, catalogEventDTO={}, sessionToken={}", eventType, catalogEventDTO, sessionToken);
-        return ResponseEntity.ok(dayEventCatalogService.addCatalogEvent(eventType, catalogEventDTO, sessionToken));
+            @ApiParam(value = "dayEventCatalog", required = true)
+            @RequestBody DayEventCatalog dayEventCatalog) {
+        LOGGER.info("POST Day Event Catalog request: eventType={}, dayEventCatalog={}, sessionToken={}", eventType, dayEventCatalog, sessionToken);
+        return ResponseEntity.ok(dayEventCatalogService.addCatalogEvent(eventType, dayEventCatalog, sessionToken));
     }
 
     // TODO - endpoint to update day event

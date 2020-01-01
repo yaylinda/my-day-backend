@@ -4,14 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import yay.linda.mydaybackend.entity.DayActivityCatalog;
-import yay.linda.mydaybackend.entity.DayPromptCatalog;
-import yay.linda.mydaybackend.model.CatalogEventDTO;
+import yay.linda.mydaybackend.entity.DayEventCatalog;
 import yay.linda.mydaybackend.model.EventType;
-import yay.linda.mydaybackend.repository.DayActivityCatalogRepository;
-import yay.linda.mydaybackend.repository.DayPromptCatalogRepository;
+import yay.linda.mydaybackend.repository.DayEventCatalogRepository;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -27,66 +23,39 @@ public class DayEventCatalogService {
     private SessionService sessionService;
 
     @Autowired
-    private DayActivityCatalogRepository dayActivityCatalogRepository;
+    private DayEventCatalogRepository dayEventCatalogRepository;
 
-    @Autowired
-    private DayPromptCatalogRepository dayPromptCatalogRepository;
-
-    public Map<String, List<? extends CatalogEventDTO>> getCatalogEvents(String sessionToken) {
+    public Map<String, List<DayEventCatalog>> getCatalogEvents(String sessionToken) {
 
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
-        Map<String, List<? extends CatalogEventDTO>> catalogs = new HashMap<>();
+        Map<String, List<DayEventCatalog>> catalogs = new HashMap<>();
 
         Arrays.stream(EventType.values()).forEach(t -> {
-            switch (t) {
-                case ACTIVITY:
-                    List<? extends CatalogEventDTO> activitiesList = dayActivityCatalogRepository.findByBelongsToAndType(username, t);
-                    LOGGER.info("Found {} DayActivityCatalogs for {} of type {}", activitiesList.size(), username, t);
-                    catalogs.put(t.name(), activitiesList);
-                case EMOTION:
-                    // no op
-                case PROMPT:
-                    List<? extends CatalogEventDTO> promptsList = dayPromptCatalogRepository.findByBelongsTo(username);
-                    LOGGER.info("Found {} DayPromptCatalogs for {}", promptsList.size(), username);
-                    catalogs.put(t.name(), promptsList);
-                    break;
-            }
+            List<DayEventCatalog> list = dayEventCatalogRepository.findByBelongsToAndType(username, t);
+            LOGGER.info("Found {} DayEventCatalog for {} of type {}", list.size(), username, t);
+            catalogs.put(t.name(), list);
         });
 
         return catalogs;
     }
 
-    public List<? extends CatalogEventDTO> addCatalogEvent(String eventType, CatalogEventDTO catalogEventDTO, String sessionToken) {
+    public List<DayEventCatalog> addCatalogEvent(String eventType, DayEventCatalog dayEventCatalog, String sessionToken) {
 
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
-        // TODO - validate eventType, and fields of catalogEventDTO
-        // TODO - implement add PROMPT type
+        // TODO - validate eventType, and fields of dayEventCatalogDTO
+        dayEventCatalog.setCatalogEventId(UUID.randomUUID().toString());
+        dayEventCatalog.setType(EventType.valueOf(eventType));
+        dayEventCatalog.setBelongsTo(username);
 
-        List<? extends CatalogEventDTO> list = new ArrayList<>();
+        dayEventCatalogRepository.save(dayEventCatalog);
+        LOGGER.info("Persisted new DayEventCatalog: {}", dayEventCatalog);
 
-        switch (EventType.valueOf(eventType)) {
-            case ACTIVITY:
-                DayActivityCatalog dayActivityCatalog = new DayActivityCatalog(catalogEventDTO, username);
-                dayActivityCatalogRepository.save(dayActivityCatalog);
-                LOGGER.info("Persisted new DayActivityCatalog: {}", dayActivityCatalog);
-                list = dayActivityCatalogRepository.findByBelongsToAndType(username, EventType.ACTIVITY);
-                break;
-            case EMOTION:
-                // no op
-            case PROMPT:
-                DayPromptCatalog dayPromptCatalog = new DayPromptCatalog(catalogEventDTO, username);
-                dayPromptCatalogRepository.save(dayPromptCatalog);
-                LOGGER.info("Persisted new DayPromptCatalog: {}", dayPromptCatalog);
-                list = dayPromptCatalogRepository.findByBelongsTo(username);
-                break;
-        }
+        List<DayEventCatalog> list = dayEventCatalogRepository.findByBelongsToAndType(username, dayEventCatalog.getType());
 
-        LOGGER.info("Returning {} CatalogEventDTOs of type {} for {}", list.size(), eventType, username);
+        LOGGER.info("Returning {} DayEventCatalog of type {} for {}", list.size(), eventType, username);
 
         return list;
     }
-
-    // TODO - implement update day event
 }

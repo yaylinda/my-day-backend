@@ -1,13 +1,21 @@
-package yay.linda.mydaybackend.model;
+package yay.linda.mydaybackend.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import yay.linda.mydaybackend.model.EventType;
 
 import java.util.List;
 
 @Data
-public class CatalogEventDTO {
+@NoArgsConstructor
+@AllArgsConstructor
+public class DayEventCatalog {
 
+    @Id
     private String catalogEventId;
+    private EventType type;
     private String belongsTo;
 
     // fields for ActivityCatalogDTO
