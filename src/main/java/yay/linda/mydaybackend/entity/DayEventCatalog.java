@@ -27,4 +27,5 @@ public class DayEventCatalog {
     // fields for PromptCatalogDTO
     private String question;
     private List<String> answers;
+    private Boolean allowMultiSelect;
 }
