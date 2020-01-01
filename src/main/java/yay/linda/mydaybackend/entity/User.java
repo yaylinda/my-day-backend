@@ -2,7 +2,6 @@ package yay.linda.mydaybackend.entity;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
-import yay.linda.mydaybackend.model.RegisterRequest;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;

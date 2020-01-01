@@ -16,7 +16,6 @@ import yay.linda.mydaybackend.web.error.NotFoundException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -129,7 +128,11 @@ public class DayService {
                     LOGGER.info("Adding EMOTION to day");
                     break;
                 case PROMPT:
-                    DayPromptDTO newPromptDTO = new DayPromptDTO(); // TODO - implement
+                    DayPromptDTO newPromptDTO = DayPromptDTO.builder()
+                            .question(dayEvent.getQuestion())
+                            .selectedAnswer(dayEvent.getSelectedAnswer())
+                            .startTime(dayEvent.getStartTime())
+                            .build();
                     day.getPrompts().add(newPromptDTO);
                     LOGGER.info("Adding PROMPT to day");
                     break;

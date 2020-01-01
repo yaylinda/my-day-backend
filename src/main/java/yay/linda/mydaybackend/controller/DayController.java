@@ -21,9 +21,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yay.linda.mydaybackend.model.DayDTO;
-import yay.linda.mydaybackend.model.DayEmotionDTO;
 import yay.linda.mydaybackend.model.DayEventDTO;
-import yay.linda.mydaybackend.model.UserDTO;
 import yay.linda.mydaybackend.service.DayService;
 import yay.linda.mydaybackend.web.error.ErrorDTO;
 
