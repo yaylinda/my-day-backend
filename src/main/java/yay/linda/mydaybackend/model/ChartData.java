@@ -24,4 +24,22 @@ public class ChartData {
         chartData.setLegend(new ArrayList<>());
         return chartData;
     }
+
+    public static ChartData weekChartData() {
+        ChartData chartData = new ChartData();
+        chartData.setLabels(Arrays.asList("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"));
+        chartData.setLabelsDataMap(new HashMap<>());
+        chartData.setLegend(new ArrayList<>());
+        return chartData;
+    }
+
+    public static ChartData monthChartData() {
+        ChartData chartData = new ChartData();
+        chartData.setLabels(Arrays.asList("January", "February", "March", "April", "May", "June", "July", "August",
+                "September", "October", "November", "December"));
+        chartData.setLabelsDataMap(new HashMap<>());
+        chartData.setLegend(new ArrayList<>());
+        return chartData;
+
+    }
 }
