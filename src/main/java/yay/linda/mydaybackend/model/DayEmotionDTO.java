@@ -13,6 +13,6 @@ public class DayEmotionDTO {
     private Integer emotionScore;
     private String description;
 
-    private String startTime;
+    private String startTime; // HH:MM (A/P)M
     private String endTime;
 }
