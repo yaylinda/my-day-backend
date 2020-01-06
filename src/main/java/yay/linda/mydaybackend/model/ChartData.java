@@ -11,6 +11,7 @@ import java.util.Map;
 import static yay.linda.mydaybackend.Constants.HOUR_ORDER;
 import static yay.linda.mydaybackend.Constants.MONTHS_ORDER;
 import static yay.linda.mydaybackend.Constants.WEEKDAYS_ORDER;
+import static yay.linda.mydaybackend.Constants.WEEK_NUM_ORDER;
 
 @Data
 public class ChartData {
@@ -37,18 +38,9 @@ public class ChartData {
         return chartData;
     }
 
-    public static ChartData monthChartData(int monthNum, boolean isLeapYear) {
+    public static ChartData monthChartData() {
         ChartData chartData = new ChartData();
-        chartData.setLabels(Arrays.asList(
-                String.format("%d-01", monthNum),
-                String.format("%d-08", monthNum),
-                String.format("%d-15", monthNum),
-                String.format("%d-22", monthNum)));
-
-        if (!isLeapYear) {
-            chartData.getLabels().add(String.format("%s-29", monthNum));
-        }
-
+        chartData.setLabels(WEEK_NUM_ORDER);
         return chartData;
     }
 

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import yay.linda.mydaybackend.entity.Day;
 import yay.linda.mydaybackend.model.ChartData;
+import yay.linda.mydaybackend.model.DayEmotionDTO;
 import yay.linda.mydaybackend.model.StatsDTO;
 import yay.linda.mydaybackend.model.StatsType;
 import yay.linda.mydaybackend.repository.DayRepository;
@@ -113,20 +114,13 @@ public class StatsService {
         LOGGER.info("Using latest date [{}], to calculate average scores for DAY (per hour)", day.getDate());
 
         ChartData dayChartData = ChartData.dayChartData();
-
         Map<String, List<Integer>> hourToValueMapping = new HashMap<>();
+        dayChartData.getLabels().forEach((label) -> hourToValueMapping.put(label, new ArrayList<>()));
 
-        dayChartData.getLabels().forEach((hourLabel) -> day.getEmotions().forEach((emotionScore) -> {
-            if (hourLabel.equals(String.format("%s %s",
-                    emotionScore.getStartTime().substring(0, 2), emotionScore.getStartTime().substring(6, 8)))) {
-                if (!hourToValueMapping.containsKey(hourLabel)) {
-                    hourToValueMapping.put(hourLabel, new ArrayList<>());
-                }
-                hourToValueMapping.get(hourLabel).add(emotionScore.getEmotionScore());
-            } else {
-                hourToValueMapping.put(hourLabel, new ArrayList<>());
-            }
-        }));
+        day.getEmotions().forEach((emotion) -> {
+            String hourLabel = emotion.getStartTime().substring(0, 2) + " " + emotion.getStartTime().substring(6, 8);
+            hourToValueMapping.get(hourLabel).add(emotion.getEmotionScore());
+        });
 
         hourToValueMapping.forEach((k, v) -> {
             Double value;
@@ -146,27 +140,29 @@ public class StatsService {
                 week.get(week.size() - 1), week.get(0));
 
         ChartData dayChartData = ChartData.weekChartData();
-
         Map<String, List<Integer>> weekdayLabelToScoreMapping = new HashMap<>();
+        dayChartData.getLabels().forEach((label) -> weekdayLabelToScoreMapping.put(label, new ArrayList<>()));
 
         week.forEach(d -> {
             String weekday = LocalDate.parse(d.getDate())
                     .getDayOfWeek().getDisplayName(SHORT_STANDALONE, Locale.ENGLISH);
-            if (d.getEmotions().isEmpty()) {
-                weekdayLabelToScoreMapping.put(weekday, new ArrayList<>());
-            } else {
-                List<Integer> dayEmotions = new ArrayList<>();
-                d.getEmotions().forEach(e -> dayEmotions.add(e.getEmotionScore()));
-                weekdayLabelToScoreMapping.put(weekday, dayEmotions);
-            }
+
+            weekdayLabelToScoreMapping.get(weekday)
+                    .addAll(d.getEmotions()
+                            .stream()
+                            .map(DayEmotionDTO::getEmotionScore)
+                            .collect(Collectors.toList()));
         });
 
-        weekdayLabelToScoreMapping
-                .forEach((k, v) -> dayChartData.getLabelsDataMap()
-                        .put(k, Arrays.stream(v.toArray())
-                                .mapToInt(i -> (Integer) i).
-                                        average()
-                                .orElse(0.0)));
+        weekdayLabelToScoreMapping.forEach((k, v) -> {
+            Double value;
+            if (v.isEmpty()) {
+                value = 0.0;
+            } else {
+                value = Arrays.stream(v.toArray()).mapToInt(i -> (Integer) i).average().orElse(0.0);
+            }
+            dayChartData.getLabelsDataMap().put(k, value);
+        });
 
         return dayChartData;
     }
@@ -176,43 +172,41 @@ public class StatsService {
                 month.get(month.size() - 1).getDate(), month.get(0));
 
         LocalDate localDate = LocalDate.parse(month.get(0).getDate());
-
-        ChartData dayChartData = ChartData.monthChartData(
-                localDate.getMonth().getValue(),
-                localDate.isLeapYear());
-
+        ChartData dayChartData = ChartData.monthChartData();
         Map<String, List<Integer>> weekStartLabelToScoreMapping = new HashMap<>();
+        dayChartData.getLabels().forEach((label) -> weekStartLabelToScoreMapping.put(label, new ArrayList<>()));
 
         month.forEach(d -> {
 
             String weekStartLabel = "";
             if (localDate.getDayOfMonth() >= 1 && localDate.getDayOfMonth() <= 7) {
-                weekStartLabel = String.format("%d-01", localDate.getMonth().getValue());
+                weekStartLabel = "Week 1";
             } else if (localDate.getDayOfMonth() >= 8 && localDate.getDayOfMonth() <= 14) {
-                weekStartLabel = String.format("%d-08", localDate.getMonth().getValue());;
+                weekStartLabel = "Week 2";
             } else if (localDate.getDayOfMonth() >= 15 && localDate.getDayOfMonth() <= 21) {
-                weekStartLabel = String.format("%d-15", localDate.getMonth().getValue());;
+                weekStartLabel = "Week 3";
             } else if (localDate.getDayOfMonth() >= 22 && localDate.getDayOfMonth() <= 28) {
-                weekStartLabel = String.format("%d-22", localDate.getMonth().getValue());;
+                weekStartLabel = "Week 4";
             } else {
-                weekStartLabel = String.format("%d-29", localDate.getMonth().getValue());;
+                weekStartLabel = "Week 5";
             }
 
-            if (d.getEmotions().isEmpty()) {
-                weekStartLabelToScoreMapping.put(weekStartLabel, new ArrayList<>());
-            } else {
-                List<Integer> weekEmotions = new ArrayList<>();
-                d.getEmotions().forEach(e -> weekEmotions.add(e.getEmotionScore()));
-                weekStartLabelToScoreMapping.put(weekStartLabel, weekEmotions);
-            }
+            weekStartLabelToScoreMapping.get(weekStartLabel)
+                    .addAll(d.getEmotions()
+                            .stream()
+                            .map(DayEmotionDTO::getEmotionScore)
+                            .collect(Collectors.toList()));
         });
 
-        weekStartLabelToScoreMapping
-                .forEach((k, v) -> dayChartData.getLabelsDataMap()
-                        .put(k, Arrays.stream(v.toArray())
-                                .mapToInt(i -> (Integer) i).
-                                        average()
-                                .orElse(0.0)));
+        weekStartLabelToScoreMapping.forEach((k, v) -> {
+            Double value;
+            if (v.isEmpty()) {
+                value = 0.0;
+            } else {
+                value = Arrays.stream(v.toArray()).mapToInt(i -> (Integer) i).average().orElse(0.0);
+            }
+            dayChartData.getLabelsDataMap().put(k, value);
+        });
 
         return dayChartData;
     }
@@ -222,31 +216,29 @@ public class StatsService {
                 year.get(year.size() - 1).getDate(), year.get(0));
 
         LocalDate localDate = LocalDate.parse(year.get(0).getDate());
-
         ChartData dayChartData = ChartData.yearChartData();
-
         Map<String, List<Integer>> monthLabelToStartMapping = new HashMap<>();
+        dayChartData.getLabels().forEach((label) -> monthLabelToStartMapping.put(label, new ArrayList<>()));
 
         year.forEach(d -> {
-            if (d.getEmotions().isEmpty()) {
-                monthLabelToStartMapping.put(
-                        localDate.getMonth().getDisplayName(SHORT_STANDALONE, Locale.ENGLISH),
-                        new ArrayList<>());
-            } else {
-                List<Integer> weekEmotions = new ArrayList<>();
-                d.getEmotions().forEach(e -> weekEmotions.add(e.getEmotionScore()));
-                monthLabelToStartMapping.put(
-                        localDate.getMonth().getDisplayName(SHORT_STANDALONE, Locale.ENGLISH),
-                        weekEmotions);
-            }
+            String monthLabel = localDate.getMonth().getDisplayName(SHORT_STANDALONE, Locale.ENGLISH);
+
+            monthLabelToStartMapping.get(monthLabel)
+                    .addAll(d.getEmotions()
+                            .stream()
+                            .map(DayEmotionDTO::getEmotionScore)
+                            .collect(Collectors.toList()));
         });
 
-        monthLabelToStartMapping
-                .forEach((k, v) -> dayChartData.getLabelsDataMap()
-                        .put(k, Arrays.stream(v.toArray())
-                                .mapToInt(i -> (Integer) i).
-                                        average()
-                                .orElse(0.0)));
+        monthLabelToStartMapping.forEach((k, v) -> {
+            Double value;
+            if (v.isEmpty()) {
+                value = 0.0;
+            } else {
+                value = Arrays.stream(v.toArray()).mapToInt(i -> (Integer) i).average().orElse(0.0);
+            }
+            dayChartData.getLabelsDataMap().put(k, value);
+        });
 
         return dayChartData;
     }
