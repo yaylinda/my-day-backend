@@ -1,27 +1,30 @@
 package yay.linda.mydaybackend.service;
 
-import com.sun.jdi.ArrayReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import yay.linda.mydaybackend.controller.DayController;
 import yay.linda.mydaybackend.entity.Day;
 import yay.linda.mydaybackend.model.ChartData;
-import yay.linda.mydaybackend.model.DayEmotionDTO;
 import yay.linda.mydaybackend.model.StatsDTO;
 import yay.linda.mydaybackend.model.StatsType;
 import yay.linda.mydaybackend.repository.DayRepository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.time.format.TextStyle.SHORT_STANDALONE;
+import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
 
 @Service
 public class StatsService {
@@ -60,15 +63,54 @@ public class StatsService {
         LOGGER.info("Calculating Score stats from {} days' data", days.size());
 
         StatsDTO statsDTO = new StatsDTO();
+
+        // get stats data for latest day, avg by hour
         statsDTO.setDay(calculateScoreStatsForDayByHour(days.get(0)));
 
-        // TODO - make call to get ChartData for week, month, year
+        // get stats data for last 7 days, avg by day
+        LocalDate minDate = LocalDate.parse(days.get(days.size() - 1).getDate()).minusDays(1);
+        while (days.size() < 7) {
+            days.add(new Day(minDate.format(YEAR_MONTH_DAY_FORMATTER),days.get(0).getUsername()));
+            minDate = minDate.minusDays(1);
+        }
+
+        statsDTO.setWeek(calculateScoreStatsForWeekByDay(days.subList(0, 7)));
+
+        // get stats data for current month, avg by day (week?)
+        List<Day> month = new ArrayList<>();
+        String currentMonthStr = days.get(0).getDate().substring(5, 7); // YYYY-MM-DD
+
+        for (Day day : days) {
+            if (day.getDate().substring(5, 7).equals(currentMonthStr)) {
+                month.add(day);
+            }
+            if (day.getDate().substring(8, 10).equals("01")) {
+                break;
+            }
+        }
+
+        statsDTO.setMonth(calculateScoreStatsForMonthByWeek(month));
+
+        // get stats data for current year, avg by month
+        List<Day> year = new ArrayList<>();
+        String currentYearStr = days.get(0).getDate().substring(0, 4);
+
+        for (Day day : days) {
+            if (day.getDate().substring(0, 4).equals(currentYearStr)) {
+                year.add(day);
+            }
+            if (day.getDate().equals(String.format("%s-01-01", currentYearStr))) {
+                break;
+            }
+        }
+
+        statsDTO.setYear(calculateScoreStatsForYearByMonth(year));
 
         return statsDTO;
     }
 
     private ChartData calculateScoreStatsForDayByHour(Day day) {
-        LOGGER.info("Using latest date {}, to calculate average scores by hour", day.getDate());
+        LOGGER.info("Using latest date [{}], to calculate average scores for DAY (per hour)", day.getDate());
 
         ChartData dayChartData = ChartData.dayChartData();
 
@@ -95,6 +137,116 @@ public class StatsService {
             }
             dayChartData.getLabelsDataMap().put(k, value);
         });
+
+        return dayChartData;
+    }
+
+    private ChartData calculateScoreStatsForWeekByDay(List<Day> week) {
+        LOGGER.info("Using dates [{}-{}], to calculate average scores for WEEK (per day)",
+                week.get(week.size() - 1), week.get(0));
+
+        ChartData dayChartData = ChartData.weekChartData();
+
+        Map<String, List<Integer>> weekdayLabelToScoreMapping = new HashMap<>();
+
+        week.forEach(d -> {
+            String weekday = LocalDate.parse(d.getDate())
+                    .getDayOfWeek().getDisplayName(SHORT_STANDALONE, Locale.ENGLISH);
+            if (d.getEmotions().isEmpty()) {
+                weekdayLabelToScoreMapping.put(weekday, new ArrayList<>());
+            } else {
+                List<Integer> dayEmotions = new ArrayList<>();
+                d.getEmotions().forEach(e -> dayEmotions.add(e.getEmotionScore()));
+                weekdayLabelToScoreMapping.put(weekday, dayEmotions);
+            }
+        });
+
+        weekdayLabelToScoreMapping
+                .forEach((k, v) -> dayChartData.getLabelsDataMap()
+                        .put(k, Arrays.stream(v.toArray())
+                                .mapToInt(i -> (Integer) i).
+                                        average()
+                                .orElse(0.0)));
+
+        return dayChartData;
+    }
+
+    private ChartData calculateScoreStatsForMonthByWeek(List<Day> month) {
+        LOGGER.info("Using [{}-{}], to calculate average scores for MONTH (per week)",
+                month.get(month.size() - 1).getDate(), month.get(0));
+
+        LocalDate localDate = LocalDate.parse(month.get(0).getDate());
+
+        ChartData dayChartData = ChartData.monthChartData(
+                localDate.getMonth().getValue(),
+                localDate.isLeapYear());
+
+        Map<String, List<Integer>> weekStartLabelToScoreMapping = new HashMap<>();
+
+        month.forEach(d -> {
+
+            String weekStartLabel = "";
+            if (localDate.getDayOfMonth() >= 1 && localDate.getDayOfMonth() <= 7) {
+                weekStartLabel = String.format("%d-01", localDate.getMonth().getValue());
+            } else if (localDate.getDayOfMonth() >= 8 && localDate.getDayOfMonth() <= 14) {
+                weekStartLabel = String.format("%d-08", localDate.getMonth().getValue());;
+            } else if (localDate.getDayOfMonth() >= 15 && localDate.getDayOfMonth() <= 21) {
+                weekStartLabel = String.format("%d-15", localDate.getMonth().getValue());;
+            } else if (localDate.getDayOfMonth() >= 22 && localDate.getDayOfMonth() <= 28) {
+                weekStartLabel = String.format("%d-22", localDate.getMonth().getValue());;
+            } else {
+                weekStartLabel = String.format("%d-29", localDate.getMonth().getValue());;
+            }
+
+            if (d.getEmotions().isEmpty()) {
+                weekStartLabelToScoreMapping.put(weekStartLabel, new ArrayList<>());
+            } else {
+                List<Integer> weekEmotions = new ArrayList<>();
+                d.getEmotions().forEach(e -> weekEmotions.add(e.getEmotionScore()));
+                weekStartLabelToScoreMapping.put(weekStartLabel, weekEmotions);
+            }
+        });
+
+        weekStartLabelToScoreMapping
+                .forEach((k, v) -> dayChartData.getLabelsDataMap()
+                        .put(k, Arrays.stream(v.toArray())
+                                .mapToInt(i -> (Integer) i).
+                                        average()
+                                .orElse(0.0)));
+
+        return dayChartData;
+    }
+
+    private ChartData calculateScoreStatsForYearByMonth(List<Day> year) {
+        LOGGER.info("Using [{}-{}], to calculate average scores for YEAR (per month)",
+                year.get(year.size() - 1).getDate(), year.get(0));
+
+        LocalDate localDate = LocalDate.parse(year.get(0).getDate());
+
+        ChartData dayChartData = ChartData.yearChartData();
+
+        Map<String, List<Integer>> monthLabelToStartMapping = new HashMap<>();
+
+        year.forEach(d -> {
+            if (d.getEmotions().isEmpty()) {
+                monthLabelToStartMapping.put(
+                        localDate.getMonth().getDisplayName(SHORT_STANDALONE, Locale.ENGLISH),
+                        new ArrayList<>());
+            } else {
+                List<Integer> weekEmotions = new ArrayList<>();
+                d.getEmotions().forEach(e -> weekEmotions.add(e.getEmotionScore()));
+                monthLabelToStartMapping.put(
+                        localDate.getMonth().getDisplayName(SHORT_STANDALONE, Locale.ENGLISH),
+                        weekEmotions);
+            }
+        });
+
+        monthLabelToStartMapping
+                .forEach((k, v) -> dayChartData.getLabelsDataMap()
+                        .put(k, Arrays.stream(v.toArray())
+                                .mapToInt(i -> (Integer) i).
+                                        average()
+                                .orElse(0.0)));
 
         return dayChartData;
     }
