@@ -452,29 +452,46 @@ public class StatsService {
         LOGGER.info("Using [{}-{}], to calculate average scores for YEAR (per month)",
                 year.get(year.size() - 1).getDate(), year.get(0));
 
-        LocalDate localDate = LocalDate.parse(year.get(0).getDate());
         ChartData dayChartData = ChartData.yearChartData();
-        Map<String, List<Integer>> monthLabelToStartMapping = new HashMap<>();
+        Map<String, List<String>> monthLabelToStartMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> monthLabelToStartMapping.put(label, new ArrayList<>()));
 
-        year.forEach(d -> {
-            String monthLabel = localDate.getMonth().getDisplayName(SHORT_STANDALONE, Locale.ENGLISH);
+        Set<String> uniqueActivities = new HashSet<>();
 
-            monthLabelToStartMapping.get(monthLabel)
-                    .addAll(d.getEmotions()
-                            .stream()
-                            .map(DayEmotionDTO::getEmotionScore)
-                            .collect(Collectors.toList()));
+        year.forEach(d -> d.getActivities().forEach(a -> {
+            String monthLabel = LocalDate.parse(d.getDate(), YEAR_MONTH_DAY_FORMATTER).getMonth()
+                    .getDisplayName(SHORT_STANDALONE, Locale.ENGLISH);
+            monthLabelToStartMapping.get(monthLabel).add(a.getName());
+            uniqueActivities.add(a.getName());
+        }));
+
+        dayChartData.setLegend(new ArrayList<>(uniqueActivities));
+
+        monthLabelToStartMapping.forEach((k, v) -> {
+
+            List<Integer> activitiesCount;
+
+            if (v.isEmpty()) {
+                int[] temp = new int[dayChartData.getLegend().size()];
+                Arrays.fill(temp, 0);
+                activitiesCount = Arrays.stream(temp).boxed().collect(Collectors.toList());
+            } else {
+                Map<String, Long> activityCountMap = v.stream()
+                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+                long[] temp = new long[dayChartData.getLegend().size()];
+                for (int i = 0; i < dayChartData.getLegend().size(); i++) {
+                    String activityName = dayChartData.getLegend().get(i);
+                    temp[i] = activityCountMap.getOrDefault(activityName, 0L);
+                }
+
+                activitiesCount = Arrays.stream(temp).boxed().map(Long::intValue).collect(Collectors.toList());
+            }
+
+            dayChartData.getLabelsDataMap().put(k, activitiesCount);
         });
 
-        monthLabelToStartMapping.forEach((k, v) ->
-                dayChartData.getLabelsDataMap()
-                        .put(k, Arrays.stream(v.toArray())
-                                .mapToInt(i -> (Integer) i)
-                                .average()
-                                .orElse(0.0)));
-
-        return null;
+        return dayChartData;
     }
 
 
