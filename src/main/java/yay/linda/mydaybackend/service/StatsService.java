@@ -48,7 +48,7 @@ public class StatsService {
 
         List<Day> days = dayRepository.findByUsernameOrderByDateDesc(username);
 
-        StatsType type = StatsType.valueOf(statsType);
+        StatsType type = StatsType.valueOf(statsType.toUpperCase());
 
         switch (type) {
             case SCORE:

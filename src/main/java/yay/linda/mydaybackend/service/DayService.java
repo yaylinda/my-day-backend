@@ -100,7 +100,7 @@ public class DayService {
 
         if (optionalDay.isPresent()) {
             Day day = optionalDay.get();
-            EventType type = EventType.valueOf(eventType);
+            EventType type = EventType.valueOf(eventType.toUpperCase());
 
             LOGGER.info("Found day with dayId={}", dayId);
 
