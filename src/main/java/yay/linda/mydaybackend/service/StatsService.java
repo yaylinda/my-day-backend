@@ -354,15 +354,13 @@ public class StatsService {
 
         Set<String> uniqueActivities = new HashSet<>();
 
-        week.forEach(d -> {
-            d.getActivities().forEach(a -> {
-                String weekdayLabel = LocalDate.parse(d.getDate(), YEAR_MONTH_DAY_FORMATTER)
-                        .getDayOfWeek()
-                        .getDisplayName(TextStyle.SHORT_STANDALONE, Locale.ENGLISH);
-                weekdayLabelToValueMapping.get(weekdayLabel).add(a.getName());
-                uniqueActivities.add(a.getName());
-            });
-        });
+        week.forEach(d -> d.getActivities().forEach(a -> {
+            String weekdayLabel = LocalDate.parse(d.getDate(), YEAR_MONTH_DAY_FORMATTER)
+                    .getDayOfWeek()
+                    .getDisplayName(TextStyle.SHORT_STANDALONE, Locale.ENGLISH);
+            weekdayLabelToValueMapping.get(weekdayLabel).add(a.getName());
+            uniqueActivities.add(a.getName());
+        }));
 
         dayChartData.setLegend(new ArrayList<>(uniqueActivities));
 
@@ -399,11 +397,12 @@ public class StatsService {
 
         LocalDate localDate = LocalDate.parse(month.get(0).getDate());
         ChartData dayChartData = ChartData.monthChartData();
-        Map<String, List<Integer>> weekStartLabelToScoreMapping = new HashMap<>();
+        Map<String, List<String>> weekStartLabelToScoreMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> weekStartLabelToScoreMapping.put(label, new ArrayList<>()));
 
-        month.forEach(d -> {
+        Set<String> uniqueActivities = new HashSet<>();
 
+        month.forEach(d -> d.getActivities().forEach(a -> {
             String weekStartLabel = "";
             if (localDate.getDayOfMonth() >= 1 && localDate.getDayOfMonth() <= 7) {
                 weekStartLabel = "Week 1";
@@ -416,22 +415,37 @@ public class StatsService {
             } else {
                 weekStartLabel = "Week 5";
             }
+            weekStartLabelToScoreMapping.get(weekStartLabel).add(a.getName());
+            uniqueActivities.add(a.getName());
+        }));
 
-            weekStartLabelToScoreMapping.get(weekStartLabel)
-                    .addAll(d.getEmotions()
-                            .stream()
-                            .map(DayEmotionDTO::getEmotionScore)
-                            .collect(Collectors.toList()));
+        dayChartData.setLegend(new ArrayList<>(uniqueActivities));
+
+        weekStartLabelToScoreMapping.forEach((k, v) -> {
+
+            List<Integer> activitiesCount;
+
+            if (v.isEmpty()) {
+                int[] temp = new int[dayChartData.getLegend().size()];
+                Arrays.fill(temp, 0);
+                activitiesCount = Arrays.stream(temp).boxed().collect(Collectors.toList());
+            } else {
+                Map<String, Long> activityCountMap = v.stream()
+                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+                long[] temp = new long[dayChartData.getLegend().size()];
+                for (int i = 0; i < dayChartData.getLegend().size(); i++) {
+                    String activityName = dayChartData.getLegend().get(i);
+                    temp[i] = activityCountMap.getOrDefault(activityName, 0L);
+                }
+
+                activitiesCount = Arrays.stream(temp).boxed().map(Long::intValue).collect(Collectors.toList());
+            }
+
+            dayChartData.getLabelsDataMap().put(k, activitiesCount);
         });
 
-        weekStartLabelToScoreMapping.forEach((k, v) ->
-                dayChartData.getLabelsDataMap()
-                        .put(k, Arrays.stream(v.toArray())
-                                .mapToInt(i -> (Integer) i)
-                                .average()
-                                .orElse(0.0)));
-
-        return null;
+        return dayChartData;
     }
 
     private ChartData calculateActivityStatsForYearByMonth(List<Day> year) {
