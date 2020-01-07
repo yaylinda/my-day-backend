@@ -12,21 +12,24 @@ import yay.linda.mydaybackend.model.StatsType;
 import yay.linda.mydaybackend.repository.DayRepository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.time.format.TextStyle.SHORT_STANDALONE;
 import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
+import static yay.linda.mydaybackend.Constants.aggregateActivityByLabel;
+import static yay.linda.mydaybackend.Constants.aggregateScoreByLabel;
+import static yay.linda.mydaybackend.Constants.determineWeekStartLabel;
+import static yay.linda.mydaybackend.Constants.getMonth;
+import static yay.linda.mydaybackend.Constants.getWeek;
+import static yay.linda.mydaybackend.Constants.getYear;
 
 @Service
 public class StatsService {
@@ -66,57 +69,17 @@ public class StatsService {
 
         StatsDTO statsDTO = new StatsDTO();
 
-        /*
-         *  get stats data for latest day, avg by hour
-         */
+        // get stats data for latest day, avg by hour
         statsDTO.setDay(calculateScoreStatsForDayByHour(days.get(0)));
 
+        // get stats data for last 7 days, avg by day
+        statsDTO.setWeek(calculateScoreStatsForWeekByDay(getWeek(days)));
 
-        /*
-         *  get stats data for last 7 days, avg by day
-         */
-        LocalDate minDate = LocalDate.parse(days.get(days.size() - 1).getDate()).minusDays(1);
-        while (days.size() < 7) {
-            days.add(new Day(minDate.format(YEAR_MONTH_DAY_FORMATTER),days.get(0).getUsername()));
-            minDate = minDate.minusDays(1);
-        }
+        // get stats data for current month, avg by week number
+        statsDTO.setMonth(calculateScoreStatsForMonthByWeek(getMonth(days)));
 
-        statsDTO.setWeek(calculateScoreStatsForWeekByDay(days.subList(0, 7)));
-
-        /*
-         *  get stats data for current month, avg by week number
-         */
-        List<Day> month = new ArrayList<>();
-        String currentMonthStr = days.get(0).getDate().substring(5, 7); // YYYY-MM-DD
-
-        for (Day day : days) {
-            if (day.getDate().substring(5, 7).equals(currentMonthStr)) {
-                month.add(day);
-            }
-            if (day.getDate().substring(8, 10).equals("01")) {
-                break;
-            }
-        }
-
-        statsDTO.setMonth(calculateScoreStatsForMonthByWeek(month));
-
-
-        /*
-         *  get stats data for current year, avg by month
-         */
-        List<Day> year = new ArrayList<>();
-        String currentYearStr = days.get(0).getDate().substring(0, 4);
-
-        for (Day day : days) {
-            if (day.getDate().substring(0, 4).equals(currentYearStr)) {
-                year.add(day);
-            }
-            if (day.getDate().equals(String.format("%s-01-01", currentYearStr))) {
-                break;
-            }
-        }
-
-        statsDTO.setYear(calculateScoreStatsForYearByMonth(year));
+        // get stats data for current year, avg by month
+        statsDTO.setYear(calculateScoreStatsForYearByMonth(getYear(days)));
 
         return statsDTO;
     }
@@ -133,12 +96,7 @@ public class StatsService {
             hourToValueMapping.get(hourLabel).add(emotion.getEmotionScore());
         });
 
-        hourToValueMapping.forEach((k, v) ->
-                dayChartData.getLabelsDataMap()
-                        .put(k, Arrays.stream(v.toArray())
-                                .mapToInt(i -> (Integer) i)
-                                .average()
-                                .orElse(0.0)));
+        aggregateScoreByLabel(hourToValueMapping, dayChartData);
 
         return dayChartData;
     }
@@ -162,12 +120,7 @@ public class StatsService {
                             .collect(Collectors.toList()));
         });
 
-        weekdayLabelToScoreMapping.forEach((k, v) ->
-                dayChartData.getLabelsDataMap()
-                        .put(k, Arrays.stream(v.toArray())
-                                .mapToInt(i -> (Integer) i)
-                                .average()
-                                .orElse(0.0)));
+        aggregateScoreByLabel(weekdayLabelToScoreMapping, dayChartData);
 
         return dayChartData;
     }
@@ -176,39 +129,17 @@ public class StatsService {
         LOGGER.info("Using [{}-{}], to calculate average scores for MONTH (per week)",
                 month.get(month.size() - 1).getDate(), month.get(0));
 
-        LocalDate localDate = LocalDate.parse(month.get(0).getDate());
         ChartData dayChartData = ChartData.monthChartData();
         Map<String, List<Integer>> weekStartLabelToScoreMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> weekStartLabelToScoreMapping.put(label, new ArrayList<>()));
 
-        month.forEach(d -> {
+        month.forEach(d -> weekStartLabelToScoreMapping.get(determineWeekStartLabel(LocalDate.parse(month.get(0).getDate())))
+                .addAll(d.getEmotions()
+                        .stream()
+                        .map(DayEmotionDTO::getEmotionScore)
+                        .collect(Collectors.toList())));
 
-            String weekStartLabel = "";
-            if (localDate.getDayOfMonth() >= 1 && localDate.getDayOfMonth() <= 7) {
-                weekStartLabel = "Week 1";
-            } else if (localDate.getDayOfMonth() >= 8 && localDate.getDayOfMonth() <= 14) {
-                weekStartLabel = "Week 2";
-            } else if (localDate.getDayOfMonth() >= 15 && localDate.getDayOfMonth() <= 21) {
-                weekStartLabel = "Week 3";
-            } else if (localDate.getDayOfMonth() >= 22 && localDate.getDayOfMonth() <= 28) {
-                weekStartLabel = "Week 4";
-            } else {
-                weekStartLabel = "Week 5";
-            }
-
-            weekStartLabelToScoreMapping.get(weekStartLabel)
-                    .addAll(d.getEmotions()
-                            .stream()
-                            .map(DayEmotionDTO::getEmotionScore)
-                            .collect(Collectors.toList()));
-        });
-
-        weekStartLabelToScoreMapping.forEach((k, v) ->
-                dayChartData.getLabelsDataMap()
-                        .put(k, Arrays.stream(v.toArray())
-                                .mapToInt(i -> (Integer) i)
-                                .average()
-                                .orElse(0.0)));
+        aggregateScoreByLabel(weekStartLabelToScoreMapping, dayChartData);
 
         return dayChartData;
     }
@@ -232,12 +163,7 @@ public class StatsService {
                             .collect(Collectors.toList()));
         });
 
-        monthLabelToStartMapping.forEach((k, v) ->
-                dayChartData.getLabelsDataMap()
-                        .put(k, Arrays.stream(v.toArray())
-                                .mapToInt(i -> (Integer) i)
-                                .average()
-                                .orElse(0.0)));
+        aggregateScoreByLabel(monthLabelToStartMapping, dayChartData);
 
         return dayChartData;
     }
@@ -246,57 +172,18 @@ public class StatsService {
         LOGGER.info("Calculating Activity stats from {} days' data", days.size());
 
         StatsDTO statsDTO = new StatsDTO();
-        /*
-         *  get stats data for latest day, avg by hour
-         */
+
+        // get stats data for latest day, avg by hour
         statsDTO.setDay(calculateActivityStatsForDayByHour(days.get(0)));
 
+        // get stats data for last 7 days, avg by day
+        statsDTO.setWeek(calculateActivityStatsForWeekByDay(getWeek(days)));
 
-        /*
-         *  get stats data for last 7 days, avg by day
-         */
-        LocalDate minDate = LocalDate.parse(days.get(days.size() - 1).getDate()).minusDays(1);
-        while (days.size() < 7) {
-            days.add(new Day(minDate.format(YEAR_MONTH_DAY_FORMATTER),days.get(0).getUsername()));
-            minDate = minDate.minusDays(1);
-        }
+        // get stats data for current month, avg by week number
+        statsDTO.setMonth(calculateActivityStatsForMonthByWeek(getMonth(days)));
 
-        statsDTO.setWeek(calculateActivityStatsForWeekByDay(days.subList(0, 7)));
-
-        /*
-         *  get stats data for current month, avg by week number
-         */
-        List<Day> month = new ArrayList<>();
-        String currentMonthStr = days.get(0).getDate().substring(5, 7); // YYYY-MM-DD
-
-        for (Day day : days) {
-            if (day.getDate().substring(5, 7).equals(currentMonthStr)) {
-                month.add(day);
-            }
-            if (day.getDate().substring(8, 10).equals("01")) {
-                break;
-            }
-        }
-
-        statsDTO.setMonth(calculateActivityStatsForMonthByWeek(month));
-
-
-        /*
-         *  get stats data for current year, avg by month
-         */
-        List<Day> year = new ArrayList<>();
-        String currentYearStr = days.get(0).getDate().substring(0, 4);
-
-        for (Day day : days) {
-            if (day.getDate().substring(0, 4).equals(currentYearStr)) {
-                year.add(day);
-            }
-            if (day.getDate().equals(String.format("%s-01-01", currentYearStr))) {
-                break;
-            }
-        }
-
-        statsDTO.setYear(calculateActivityStatsForYearByMonth(year));
+        // get stats data for current year, avg by month
+        statsDTO.setYear(calculateActivityStatsForYearByMonth(getYear(days)));
 
         return statsDTO;
     }
@@ -315,31 +202,7 @@ public class StatsService {
             uniqueActivities.add(activity.getName());
         });
 
-        dayChartData.setLegend(new ArrayList<>(uniqueActivities));
-
-        hourToValueMapping.forEach((k, v) -> {
-
-            List<Integer> activitiesCount;
-
-            if (v.isEmpty()) {
-                int[] temp = new int[dayChartData.getLegend().size()];
-                Arrays.fill(temp, 0);
-                activitiesCount = Arrays.stream(temp).boxed().collect(Collectors.toList());
-            } else {
-                Map<String, Long> activityCountMap = v.stream()
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-                long[] temp = new long[dayChartData.getLegend().size()];
-                for (int i = 0; i < dayChartData.getLegend().size(); i++) {
-                    String activityName = dayChartData.getLegend().get(i);
-                    temp[i] = activityCountMap.getOrDefault(activityName, 0L);
-                }
-
-                activitiesCount = Arrays.stream(temp).boxed().map(Long::intValue).collect(Collectors.toList());
-            }
-
-            dayChartData.getLabelsDataMap().put(k, activitiesCount);
-        });
+        aggregateActivityByLabel(hourToValueMapping, dayChartData, uniqueActivities);
 
         return dayChartData;
     }
@@ -362,31 +225,7 @@ public class StatsService {
             uniqueActivities.add(a.getName());
         }));
 
-        dayChartData.setLegend(new ArrayList<>(uniqueActivities));
-
-        weekdayLabelToValueMapping.forEach((k, v) -> {
-
-            List<Integer> activitiesCount;
-
-            if (v.isEmpty()) {
-                int[] temp = new int[dayChartData.getLegend().size()];
-                Arrays.fill(temp, 0);
-                activitiesCount = Arrays.stream(temp).boxed().collect(Collectors.toList());
-            } else {
-                Map<String, Long> activityCountMap = v.stream()
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-                long[] temp = new long[dayChartData.getLegend().size()];
-                for (int i = 0; i < dayChartData.getLegend().size(); i++) {
-                    String activityName = dayChartData.getLegend().get(i);
-                    temp[i] = activityCountMap.getOrDefault(activityName, 0L);
-                }
-
-                activitiesCount = Arrays.stream(temp).boxed().map(Long::intValue).collect(Collectors.toList());
-            }
-
-            dayChartData.getLabelsDataMap().put(k, activitiesCount);
-        });
+        aggregateActivityByLabel(weekdayLabelToValueMapping, dayChartData, uniqueActivities);
 
         return dayChartData;
     }
@@ -395,7 +234,6 @@ public class StatsService {
         LOGGER.info("Using [{}-{}], to calculate average scores for MONTH (per week)",
                 month.get(month.size() - 1).getDate(), month.get(0));
 
-        LocalDate localDate = LocalDate.parse(month.get(0).getDate());
         ChartData dayChartData = ChartData.monthChartData();
         Map<String, List<String>> weekStartLabelToScoreMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> weekStartLabelToScoreMapping.put(label, new ArrayList<>()));
@@ -403,47 +241,13 @@ public class StatsService {
         Set<String> uniqueActivities = new HashSet<>();
 
         month.forEach(d -> d.getActivities().forEach(a -> {
-            String weekStartLabel = "";
-            if (localDate.getDayOfMonth() >= 1 && localDate.getDayOfMonth() <= 7) {
-                weekStartLabel = "Week 1";
-            } else if (localDate.getDayOfMonth() >= 8 && localDate.getDayOfMonth() <= 14) {
-                weekStartLabel = "Week 2";
-            } else if (localDate.getDayOfMonth() >= 15 && localDate.getDayOfMonth() <= 21) {
-                weekStartLabel = "Week 3";
-            } else if (localDate.getDayOfMonth() >= 22 && localDate.getDayOfMonth() <= 28) {
-                weekStartLabel = "Week 4";
-            } else {
-                weekStartLabel = "Week 5";
-            }
-            weekStartLabelToScoreMapping.get(weekStartLabel).add(a.getName());
+            weekStartLabelToScoreMapping
+                    .get(determineWeekStartLabel(LocalDate.parse(month.get(0).getDate())))
+                    .add(a.getName());
             uniqueActivities.add(a.getName());
         }));
 
-        dayChartData.setLegend(new ArrayList<>(uniqueActivities));
-
-        weekStartLabelToScoreMapping.forEach((k, v) -> {
-
-            List<Integer> activitiesCount;
-
-            if (v.isEmpty()) {
-                int[] temp = new int[dayChartData.getLegend().size()];
-                Arrays.fill(temp, 0);
-                activitiesCount = Arrays.stream(temp).boxed().collect(Collectors.toList());
-            } else {
-                Map<String, Long> activityCountMap = v.stream()
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-                long[] temp = new long[dayChartData.getLegend().size()];
-                for (int i = 0; i < dayChartData.getLegend().size(); i++) {
-                    String activityName = dayChartData.getLegend().get(i);
-                    temp[i] = activityCountMap.getOrDefault(activityName, 0L);
-                }
-
-                activitiesCount = Arrays.stream(temp).boxed().map(Long::intValue).collect(Collectors.toList());
-            }
-
-            dayChartData.getLabelsDataMap().put(k, activitiesCount);
-        });
+        aggregateActivityByLabel(weekStartLabelToScoreMapping, dayChartData, uniqueActivities);
 
         return dayChartData;
     }
@@ -465,31 +269,7 @@ public class StatsService {
             uniqueActivities.add(a.getName());
         }));
 
-        dayChartData.setLegend(new ArrayList<>(uniqueActivities));
-
-        monthLabelToStartMapping.forEach((k, v) -> {
-
-            List<Integer> activitiesCount;
-
-            if (v.isEmpty()) {
-                int[] temp = new int[dayChartData.getLegend().size()];
-                Arrays.fill(temp, 0);
-                activitiesCount = Arrays.stream(temp).boxed().collect(Collectors.toList());
-            } else {
-                Map<String, Long> activityCountMap = v.stream()
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-                long[] temp = new long[dayChartData.getLegend().size()];
-                for (int i = 0; i < dayChartData.getLegend().size(); i++) {
-                    String activityName = dayChartData.getLegend().get(i);
-                    temp[i] = activityCountMap.getOrDefault(activityName, 0L);
-                }
-
-                activitiesCount = Arrays.stream(temp).boxed().map(Long::intValue).collect(Collectors.toList());
-            }
-
-            dayChartData.getLabelsDataMap().put(k, activitiesCount);
-        });
+        aggregateActivityByLabel(monthLabelToStartMapping, dayChartData, uniqueActivities);
 
         return dayChartData;
     }
