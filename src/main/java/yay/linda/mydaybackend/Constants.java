@@ -2,8 +2,11 @@ package yay.linda.mydaybackend;
 
 import yay.linda.mydaybackend.entity.Day;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,14 +29,18 @@ public final class Constants {
             "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
 
     public static List<Day> getWeek(List<Day> days) {
-        LocalDate minDate = LocalDate.parse(days.get(days.size() - 1).getDate()).minusDays(1);
+        LocalDate lastSunday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
 
-        while (days.size() < 7) {
-            days.add(new Day(minDate.format(YEAR_MONTH_DAY_FORMATTER),days.get(0).getUsername()));
-            minDate = minDate.minusDays(1);
+        List<Day> week = new ArrayList<>();
+
+        for (int i = days.size() - 1; i >= 0; i--) {
+            LocalDate latestDate = LocalDate.parse(days.get(i).getDate());
+            if (latestDate.isAfter(lastSunday) || latestDate.isEqual(lastSunday)) {
+                week.add(days.get(i));
+            }
         }
 
-        return days.subList(0, 7);
+        return week;
     }
 
     public static List<Day> getMonth(List<Day> days) {
