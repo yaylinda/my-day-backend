@@ -90,45 +90,4 @@ public final class Constants {
 
         return weekStartLabel;
     }
-
-    public static void aggregateScoreByLabel(Map<String, List<Integer>> map, ChartData chartData) {
-        map.forEach((k, v) ->
-                chartData.getLabelsDataMap()
-                        .put(k, Arrays.stream(v.toArray())
-                                .mapToInt(i -> (Integer) i)
-                                .average()
-                                .orElse(0.0)));
-    }
-
-    public static void aggregateActivityByLabel(
-            Map<String, List<String>> map,
-            ChartData chartData,
-            Set<String> uniqueActivities) {
-
-        chartData.setLegend(new ArrayList<>(uniqueActivities));
-
-        map.forEach((k, v) -> {
-
-            List<Integer> activitiesCount;
-
-            if (v.isEmpty()) {
-                int[] temp = new int[chartData.getLegend().size()];
-                Arrays.fill(temp, 0);
-                activitiesCount = Arrays.stream(temp).boxed().collect(Collectors.toList());
-            } else {
-                Map<String, Long> activityCountMap = v.stream()
-                        .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-                long[] temp = new long[chartData.getLegend().size()];
-                for (int i = 0; i < chartData.getLegend().size(); i++) {
-                    String activityName = chartData.getLegend().get(i);
-                    temp[i] = activityCountMap.getOrDefault(activityName, 0L);
-                }
-
-                activitiesCount = Arrays.stream(temp).boxed().map(Long::intValue).collect(Collectors.toList());
-            }
-
-            chartData.getLabelsDataMap().put(k, activitiesCount);
-        });
-    }
 }

@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
 
 import static java.time.format.TextStyle.SHORT_STANDALONE;
 import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
-import static yay.linda.mydaybackend.Constants.aggregateActivityByLabel;
-import static yay.linda.mydaybackend.Constants.aggregateScoreByLabel;
 import static yay.linda.mydaybackend.Constants.determineWeekStartLabel;
 import static yay.linda.mydaybackend.Constants.getMonth;
 import static yay.linda.mydaybackend.Constants.getWeek;
@@ -41,6 +39,9 @@ public class StatsService {
 
     @Autowired
     private SessionService sessionService;
+
+    @Autowired
+    private AggregationService aggregationService;
 
     public StatsDTO getStats(String statsType, String sessionToken) {
 
@@ -96,7 +97,7 @@ public class StatsService {
             hourToValueMapping.get(hourLabel).add(emotion.getEmotionScore());
         });
 
-        aggregateScoreByLabel(hourToValueMapping, dayChartData);
+        aggregationService.aggregateScoreByLabel(hourToValueMapping, dayChartData);
 
         return dayChartData;
     }
@@ -120,7 +121,7 @@ public class StatsService {
                             .collect(Collectors.toList()));
         });
 
-        aggregateScoreByLabel(weekdayLabelToScoreMapping, dayChartData);
+        aggregationService.aggregateScoreByLabel(weekdayLabelToScoreMapping, dayChartData);
 
         return dayChartData;
     }
@@ -139,7 +140,7 @@ public class StatsService {
                         .map(DayEmotionDTO::getEmotionScore)
                         .collect(Collectors.toList())));
 
-        aggregateScoreByLabel(weekStartLabelToScoreMapping, dayChartData);
+        aggregationService.aggregateScoreByLabel(weekStartLabelToScoreMapping, dayChartData);
 
         return dayChartData;
     }
@@ -163,7 +164,7 @@ public class StatsService {
                             .collect(Collectors.toList()));
         });
 
-        aggregateScoreByLabel(monthLabelToStartMapping, dayChartData);
+        aggregationService.aggregateScoreByLabel(monthLabelToStartMapping, dayChartData);
 
         return dayChartData;
     }
@@ -202,7 +203,7 @@ public class StatsService {
             uniqueActivities.add(activity.getName());
         });
 
-        aggregateActivityByLabel(hourToValueMapping, dayChartData, uniqueActivities);
+        aggregationService.aggregateActivityByLabel(hourToValueMapping, dayChartData, uniqueActivities);
 
         return dayChartData;
     }
@@ -225,7 +226,7 @@ public class StatsService {
             uniqueActivities.add(a.getName());
         }));
 
-        aggregateActivityByLabel(weekdayLabelToValueMapping, dayChartData, uniqueActivities);
+        aggregationService.aggregateActivityByLabel(weekdayLabelToValueMapping, dayChartData, uniqueActivities);
 
         return dayChartData;
     }
@@ -247,7 +248,7 @@ public class StatsService {
             uniqueActivities.add(a.getName());
         }));
 
-        aggregateActivityByLabel(weekStartLabelToScoreMapping, dayChartData, uniqueActivities);
+        aggregationService.aggregateActivityByLabel(weekStartLabelToScoreMapping, dayChartData, uniqueActivities);
 
         return dayChartData;
     }
@@ -269,7 +270,7 @@ public class StatsService {
             uniqueActivities.add(a.getName());
         }));
 
-        aggregateActivityByLabel(monthLabelToStartMapping, dayChartData, uniqueActivities);
+        aggregationService.aggregateActivityByLabel(monthLabelToStartMapping, dayChartData, uniqueActivities);
 
         return dayChartData;
     }
