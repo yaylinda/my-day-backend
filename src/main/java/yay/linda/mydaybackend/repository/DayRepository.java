@@ -1,7 +1,6 @@
 package yay.linda.mydaybackend.repository;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import yay.linda.mydaybackend.entity.Day;
 
 import java.util.List;

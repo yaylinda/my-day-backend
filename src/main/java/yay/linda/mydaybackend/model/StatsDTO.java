@@ -2,8 +2,6 @@ package yay.linda.mydaybackend.model;
 
 import lombok.Data;
 
-import java.util.Map;
-
 @Data
 public class StatsDTO {
     private ChartData day;
