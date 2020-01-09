@@ -18,11 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.model.StatsDTO;
+import yay.linda.mydaybackend.model.StatsType;
 import yay.linda.mydaybackend.service.DayService;
 import yay.linda.mydaybackend.service.StatsService;
 import yay.linda.mydaybackend.web.error.ErrorDTO;
 
 import java.util.List;
+import java.util.Map;
 
 import static yay.linda.mydaybackend.web.error.ErrorMessages.UNAUTHORIZED;
 import static yay.linda.mydaybackend.web.error.ErrorMessages.UNEXPECTED_ERROR;
@@ -38,19 +40,17 @@ public class StatsController {
     @Autowired
     private StatsService statsService;
 
-    @GetMapping(value = "/{statsType}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Computes Stats for a User, given a valid Session-Token")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully computed Stats"),
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<StatsDTO> getStats(
-            @ApiParam(value = "statsType", required = true)
-            @PathVariable(value = "statsType") String statsType,
+    public ResponseEntity<Map<StatsType, StatsDTO>> getStats(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
-        LOGGER.info("GET days request: statsType={}, sessionToken={}", statsType, sessionToken);
-        return ResponseEntity.ok(statsService.getStats(statsType, sessionToken));
+        LOGGER.info("GET stats request: sessionToken={}", sessionToken);
+        return ResponseEntity.ok(statsService.getStats(sessionToken));
     }
 }

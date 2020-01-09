@@ -10,5 +10,4 @@ public class StatsDTO {
     private ChartData week;
     private ChartData month;
     private ChartData year;
-    private Map<String, ChartData> summary;
 }

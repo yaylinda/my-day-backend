@@ -28,6 +28,10 @@ import static yay.linda.mydaybackend.Constants.determineWeekStartLabel;
 import static yay.linda.mydaybackend.Constants.getMonth;
 import static yay.linda.mydaybackend.Constants.getWeek;
 import static yay.linda.mydaybackend.Constants.getYear;
+import static yay.linda.mydaybackend.model.StatsType.ACTIVITY;
+import static yay.linda.mydaybackend.model.StatsType.PROMPT;
+import static yay.linda.mydaybackend.model.StatsType.SCORE;
+import static yay.linda.mydaybackend.model.StatsType.SUMMARY;
 
 @Service
 public class StatsService {
@@ -43,26 +47,18 @@ public class StatsService {
     @Autowired
     private AggregationService aggregationService;
 
-    public StatsDTO getStats(String statsType, String sessionToken) {
+    public Map<StatsType, StatsDTO> getStats(String sessionToken) {
 
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         List<Day> days = dayRepository.findByUsernameOrderByDateDesc(username);
 
-        StatsType type = StatsType.valueOf(statsType.toUpperCase());
-
-        switch (type) {
-            case SCORE:
-                return calculateScoreStats(days);
-            case ACTIVITY:
-                return calculateActivityStats(days);
-            case PROMPT:
-                return calculatePromptStats(days);
-            case SUMMARY:
-                return calculateSummaryStats(days);
-        }
-
-        return new StatsDTO();
+        return Map.of(
+                SCORE, calculateScoreStats(days),
+                ACTIVITY, calculateActivityStats(days),
+                PROMPT, calculatePromptStats(days),
+                SUMMARY, calculateSummaryStats(days)
+        );
     }
 
     private StatsDTO calculateScoreStats(List<Day> days) {
