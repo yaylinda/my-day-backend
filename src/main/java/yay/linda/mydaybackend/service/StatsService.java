@@ -130,7 +130,7 @@ public class StatsService {
         Map<String, List<Integer>> weekStartLabelToScoreMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> weekStartLabelToScoreMapping.put(label, new ArrayList<>()));
 
-        month.forEach(d -> weekStartLabelToScoreMapping.get(determineWeekStartLabel(LocalDate.parse(month.get(0).getDate())))
+        month.forEach(d -> weekStartLabelToScoreMapping.get(determineWeekStartLabel(LocalDate.parse(d.getDate())))
                 .addAll(d.getEmotions()
                         .stream()
                         .map(DayEmotionDTO::getEmotionScore)
