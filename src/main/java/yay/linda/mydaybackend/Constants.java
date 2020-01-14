@@ -15,6 +15,8 @@ public final class Constants {
 
     public static final DateTimeFormatter YEAR_MONTH_DAY_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    public static final DateTimeFormatter MONTH_DAY_FORMATTER = DateTimeFormatter.ofPattern("MM-dd");
+
     public static final List<String> HOUR_ORDER = Arrays.asList(
             "12 AM", "01 AM", "02 AM", "03 AM", "04 AM", "05 AM", "06 AM", "07 AM", "08 AM", "09 AM", "10 AM", "11 AM",
             "12 PM", "01 PM", "02 PM", "03 PM", "04 PM", "05 PM", "06 PM", "07 PM", "08 PM", "09 PM", "10 PM", "11 PM");
@@ -28,19 +30,12 @@ public final class Constants {
     public static final List<String> MONTHS_ORDER = Arrays.asList(
             "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
 
-    public static List<Day> getWeek(List<Day> days) {
-        LocalDate lastSunday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
-
-        List<Day> week = new ArrayList<>();
-
-        for (int i = days.size() - 1; i >= 0; i--) {
-            LocalDate latestDate = LocalDate.parse(days.get(i).getDate());
-            if (latestDate.isAfter(lastSunday) || latestDate.isEqual(lastSunday)) {
-                week.add(days.get(i));
-            }
+    public static List<Day> getLastSevenDays(List<Day> days) {
+        if (days.size() <= 7) {
+            return days;
+        } else {
+            return days.subList(0, 7);
         }
-
-        return week;
     }
 
     public static List<Day> getMonth(List<Day> days) {

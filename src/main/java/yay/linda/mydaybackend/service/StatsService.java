@@ -14,6 +14,7 @@ import yay.linda.mydaybackend.repository.DayRepository;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,10 +24,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.time.format.TextStyle.SHORT_STANDALONE;
+import static yay.linda.mydaybackend.Constants.MONTH_DAY_FORMATTER;
 import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
 import static yay.linda.mydaybackend.Constants.determineWeekStartLabel;
+import static yay.linda.mydaybackend.Constants.getLastSevenDays;
 import static yay.linda.mydaybackend.Constants.getMonth;
-import static yay.linda.mydaybackend.Constants.getWeek;
 import static yay.linda.mydaybackend.Constants.getYear;
 import static yay.linda.mydaybackend.model.StatsType.ACTIVITY;
 import static yay.linda.mydaybackend.model.StatsType.PROMPT;
@@ -70,7 +72,7 @@ public class StatsService {
         statsDTO.setDay(calculateScoreStatsForDayByHour(days.get(0)));
 
         // get stats data for last 7 days, avg by day
-        statsDTO.setWeek(calculateScoreStatsForWeekByDay(getWeek(days)));
+        statsDTO.setWeek(calculateScoreStatsForWeekByDay(getLastSevenDays(days)));
 
         // get stats data for current month, avg by week number
         statsDTO.setMonth(calculateScoreStatsForMonthByWeek(getMonth(days)));
@@ -102,22 +104,27 @@ public class StatsService {
         LOGGER.info("Using dates [{}-{}], to calculate average scores for WEEK (per day)",
                 week.get(week.size() - 1), week.get(0));
 
-        ChartData dayChartData = ChartData.weekChartData();
-        Map<String, List<Integer>> weekdayLabelToScoreMapping = new HashMap<>();
-        dayChartData.getLabels().forEach((label) -> weekdayLabelToScoreMapping.put(label, new ArrayList<>()));
+        List<String> labels = week
+                .stream()
+                .map(d -> LocalDate.parse(d.getDate()).format(MONTH_DAY_FORMATTER))
+                .collect(Collectors.toList());
+        Collections.reverse(labels);
+
+        ChartData dayChartData = new ChartData(labels);
+        Map<String, List<Integer>> monthDayLabelToValuesMapping = new HashMap<>();
+        dayChartData.getLabels().forEach((label) -> monthDayLabelToValuesMapping.put(label, new ArrayList<>()));
 
         week.forEach(d -> {
-            String weekday = LocalDate.parse(d.getDate())
-                    .getDayOfWeek().getDisplayName(SHORT_STANDALONE, Locale.ENGLISH);
+            String monthDay = LocalDate.parse(d.getDate()).format(MONTH_DAY_FORMATTER);
 
-            weekdayLabelToScoreMapping.get(weekday)
+            monthDayLabelToValuesMapping.get(monthDay)
                     .addAll(d.getEmotions()
                             .stream()
                             .map(DayEmotionDTO::getEmotionScore)
                             .collect(Collectors.toList()));
         });
 
-        aggregationService.aggregateScoreByLabel(weekdayLabelToScoreMapping, dayChartData);
+        aggregationService.aggregateScoreByLabel(monthDayLabelToValuesMapping, dayChartData);
 
         return dayChartData;
     }
@@ -174,7 +181,7 @@ public class StatsService {
         statsDTO.setDay(calculateActivityStatsForDayByHour(days.get(0)));
 
         // get stats data for last 7 days, avg by day
-        statsDTO.setWeek(calculateActivityStatsForWeekByDay(getWeek(days)));
+        statsDTO.setWeek(calculateActivityStatsForWeekByDay(getLastSevenDays(days)));
 
         // get stats data for current month, avg by week number
         statsDTO.setMonth(calculateActivityStatsForMonthByWeek(getMonth(days)));

@@ -24,6 +24,11 @@ public class ChartData {
         this.setLegend(new ArrayList<>());
     }
 
+    public ChartData(List<String> labels) {
+        this.labels = labels;
+        this.setLabelsDataMap(new HashMap<>());
+        this.setLegend(new ArrayList<>());
+    }
 
     public static ChartData dayChartData() {
         ChartData chartData = new ChartData();
