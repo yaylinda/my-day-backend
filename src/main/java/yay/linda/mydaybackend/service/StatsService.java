@@ -215,16 +215,20 @@ public class StatsService {
         LOGGER.info("Using dates [{}-{}], to calculate average scores for WEEK (per day)",
                 week.get(week.size() - 1), week.get(0));
 
-        ChartData dayChartData = ChartData.weekChartData();
+        List<String> labels = week
+                .stream()
+                .map(d -> LocalDate.parse(d.getDate()).format(MONTH_DAY_FORMATTER))
+                .collect(Collectors.toList());
+        Collections.reverse(labels);
+
+        ChartData dayChartData = new ChartData(labels);
         Map<String, List<String>> weekdayLabelToValueMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> weekdayLabelToValueMapping.put(label, new ArrayList<>()));
 
         Set<String> uniqueActivities = new HashSet<>();
 
         week.forEach(d -> d.getActivities().forEach(a -> {
-            String weekdayLabel = LocalDate.parse(d.getDate(), YEAR_MONTH_DAY_FORMATTER)
-                    .getDayOfWeek()
-                    .getDisplayName(TextStyle.SHORT_STANDALONE, Locale.ENGLISH);
+            String weekdayLabel = LocalDate.parse(d.getDate()).format(MONTH_DAY_FORMATTER);
             weekdayLabelToValueMapping.get(weekdayLabel).add(a.getName());
             uniqueActivities.add(a.getName());
         }));
@@ -246,7 +250,7 @@ public class StatsService {
 
         month.forEach(d -> d.getActivities().forEach(a -> {
             weekStartLabelToScoreMapping
-                    .get(determineWeekStartLabel(LocalDate.parse(month.get(0).getDate())))
+                    .get(determineWeekStartLabel(LocalDate.parse(d.getDate())))
                     .add(a.getName());
             uniqueActivities.add(a.getName());
         }));
