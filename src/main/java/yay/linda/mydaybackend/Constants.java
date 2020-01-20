@@ -30,6 +30,14 @@ public final class Constants {
     public static final List<String> MONTHS_ORDER = Arrays.asList(
             "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
 
+    public static final String DAY_KEY = "day";
+
+    public static final String WEEK_KEY = "week";
+
+    public static final String MONTH_KEY = "month";
+
+    public static final String YEAR_KEY = "year";
+
     public static List<Day> getLastSevenDays(List<Day> days) {
         if (days.size() <= 7) {
             return days;

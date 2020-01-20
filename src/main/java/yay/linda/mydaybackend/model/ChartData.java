@@ -13,10 +13,10 @@ import static yay.linda.mydaybackend.Constants.WEEKDAYS_ORDER;
 import static yay.linda.mydaybackend.Constants.WEEK_NUM_ORDER;
 
 @Data
-public class ChartData {
+public class ChartData<T> {
 
     private List<String> labels;
-    private Map<String, Object> labelsDataMap;
+    private Map<String, T> labelsDataMap;
     private List<String> legend; // used to label the colors in a stacked bar chart (for activities)
 
     public ChartData() {
@@ -30,28 +30,27 @@ public class ChartData {
         this.setLegend(new ArrayList<>());
     }
 
-    public static ChartData dayChartData() {
-        ChartData chartData = new ChartData();
-        chartData.setLabels(HOUR_ORDER);
-        return chartData;
-    }
-
-    public static ChartData weekChartData() {
-        ChartData chartData = new ChartData();
-        chartData.setLabels(WEEKDAYS_ORDER);
-        return chartData;
-    }
-
-    public static ChartData monthChartData() {
-        ChartData chartData = new ChartData();
-        chartData.setLabels(WEEK_NUM_ORDER);
-        return chartData;
-    }
-
-    public static ChartData yearChartData() {
-        ChartData chartData = new ChartData();
-        chartData.setLabels(MONTHS_ORDER);
-        return chartData;
-
-    }
+//    public static ChartData dayChartData() {
+//        ChartData chartData = new ChartData();
+//        chartData.setLabels(HOUR_ORDER);
+//        return chartData;
+//    }
+//
+//    public static ChartData weekChartData() {
+//        ChartData chartData = new ChartData();
+//        chartData.setLabels(WEEKDAYS_ORDER);
+//        return chartData;
+//    }
+//
+//    public static ChartData monthChartData() {
+//        ChartData chartData = new ChartData();
+//        chartData.setLabels(WEEK_NUM_ORDER);
+//        return chartData;
+//    }
+//
+//    public static ChartData yearChartData() {
+//        ChartData chartData = new ChartData();
+//        chartData.setLabels(MONTHS_ORDER);
+//        return chartData;
+//    }
 }

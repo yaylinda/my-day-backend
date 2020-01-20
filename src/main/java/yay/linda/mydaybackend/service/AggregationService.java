@@ -25,14 +25,14 @@ public class AggregationService {
 
     public void aggregateActivityByLabel(
             Map<String, List<String>> map,
-            ChartData chartData,
+            ChartData<List<Number>> chartData,
             Set<String> uniqueActivities) {
 
         chartData.setLegend(new ArrayList<>(uniqueActivities));
 
         map.forEach((k, v) -> {
 
-            List<Integer> activitiesCount;
+            List<Number> activitiesCount;
 
             if (v.isEmpty()) {
                 int[] temp = new int[chartData.getLegend().size()];

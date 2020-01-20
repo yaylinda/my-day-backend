@@ -24,7 +24,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.time.format.TextStyle.SHORT_STANDALONE;
+import static yay.linda.mydaybackend.Constants.DAY_KEY;
+import static yay.linda.mydaybackend.Constants.HOUR_ORDER;
+import static yay.linda.mydaybackend.Constants.MONTHS_ORDER;
 import static yay.linda.mydaybackend.Constants.MONTH_DAY_FORMATTER;
+import static yay.linda.mydaybackend.Constants.MONTH_KEY;
+import static yay.linda.mydaybackend.Constants.WEEK_KEY;
+import static yay.linda.mydaybackend.Constants.WEEK_NUM_ORDER;
+import static yay.linda.mydaybackend.Constants.YEAR_KEY;
 import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
 import static yay.linda.mydaybackend.Constants.determineWeekStartLabel;
 import static yay.linda.mydaybackend.Constants.getLastSevenDays;
@@ -49,44 +56,44 @@ public class StatsService {
     @Autowired
     private AggregationService aggregationService;
 
-    public Map<StatsType, StatsDTO> getStats(String sessionToken) {
+    public StatsDTO getStats(String sessionToken) {
 
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         List<Day> days = dayRepository.findByUsernameOrderByDateDesc(username);
 
-        return Map.of(
-                SCORE, calculateScoreStats(days),
-                ACTIVITY, calculateActivityStats(days),
-                PROMPT, calculatePromptStats(days),
-                SUMMARY, calculateSummaryStats(days)
-        );
+        return StatsDTO.builder()
+                .score(calculateScoreStats(days))
+                .activity(calculateActivityStats(days))
+                .prompt(calculatePromptStats(days))
+                .summary(calculateSummaryStats(days))
+                .build();
     }
 
-    private StatsDTO calculateScoreStats(List<Day> days) {
+    private Map<String, ChartData> calculateScoreStats(List<Day> days) {
         LOGGER.info("Calculating Score stats from {} days' data", days.size());
 
-        StatsDTO statsDTO = new StatsDTO();
+        Map<String, ChartData> scoreStatsMap = new HashMap<>();
 
         // get stats data for latest day, avg by hour
-        statsDTO.setDay(calculateScoreStatsForDayByHour(days.get(0)));
+        scoreStatsMap.put(DAY_KEY, calculateScoreStatsForDayByHour(days.get(0)));
 
         // get stats data for last 7 days, avg by day
-        statsDTO.setWeek(calculateScoreStatsForWeekByDay(getLastSevenDays(days)));
+        scoreStatsMap.put(WEEK_KEY, calculateScoreStatsForWeekByDay(getLastSevenDays(days)));
 
         // get stats data for current month, avg by week number
-        statsDTO.setMonth(calculateScoreStatsForMonthByWeek(getMonth(days)));
+        scoreStatsMap.put(MONTH_KEY, calculateScoreStatsForMonthByWeek(getMonth(days)));
 
         // get stats data for current year, avg by month
-        statsDTO.setYear(calculateScoreStatsForYearByMonth(getYear(days)));
+        scoreStatsMap.put(YEAR_KEY, calculateScoreStatsForYearByMonth(getYear(days)));
 
-        return statsDTO;
+        return scoreStatsMap;
     }
 
     private ChartData calculateScoreStatsForDayByHour(Day day) {
         LOGGER.info("Using latest date [{}], to calculate average scores for DAY (per hour)", day.getDate());
 
-        ChartData dayChartData = ChartData.dayChartData();
+        ChartData<Number> dayChartData = new ChartData<>(HOUR_ORDER);
         Map<String, List<Integer>> hourToValueMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> hourToValueMapping.put(label, new ArrayList<>()));
 
@@ -110,7 +117,7 @@ public class StatsService {
                 .collect(Collectors.toList());
         Collections.reverse(labels);
 
-        ChartData dayChartData = new ChartData(labels);
+        ChartData<Number> dayChartData = new ChartData<>(labels);
         Map<String, List<Integer>> monthDayLabelToValuesMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> monthDayLabelToValuesMapping.put(label, new ArrayList<>()));
 
@@ -133,7 +140,7 @@ public class StatsService {
         LOGGER.info("Using [{}-{}], to calculate average scores for MONTH (per week)",
                 month.get(month.size() - 1).getDate(), month.get(0));
 
-        ChartData dayChartData = ChartData.monthChartData();
+        ChartData<Number> dayChartData = new ChartData<>(WEEK_NUM_ORDER);
         Map<String, List<Integer>> weekStartLabelToScoreMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> weekStartLabelToScoreMapping.put(label, new ArrayList<>()));
 
@@ -153,7 +160,7 @@ public class StatsService {
                 year.get(year.size() - 1).getDate(), year.get(0));
 
         LocalDate localDate = LocalDate.parse(year.get(0).getDate());
-        ChartData dayChartData = ChartData.yearChartData();
+        ChartData<Number> dayChartData = new ChartData<>(MONTHS_ORDER);
         Map<String, List<Integer>> monthLabelToStartMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> monthLabelToStartMapping.put(label, new ArrayList<>()));
 
@@ -172,30 +179,30 @@ public class StatsService {
         return dayChartData;
     }
 
-    private StatsDTO calculateActivityStats(List<Day> days) {
+    private Map<String, ChartData> calculateActivityStats(List<Day> days) {
         LOGGER.info("Calculating Activity stats from {} days' data", days.size());
 
-        StatsDTO statsDTO = new StatsDTO();
+        Map<String, ChartData> activityStatsMap = new HashMap<>();
 
         // get stats data for latest day, avg by hour
-        statsDTO.setDay(calculateActivityStatsForDayByHour(days.get(0)));
+        activityStatsMap.put(DAY_KEY, calculateActivityStatsForDayByHour(days.get(0)));
 
         // get stats data for last 7 days, avg by day
-        statsDTO.setWeek(calculateActivityStatsForWeekByDay(getLastSevenDays(days)));
+        activityStatsMap.put(WEEK_KEY, calculateActivityStatsForWeekByDay(getLastSevenDays(days)));
 
         // get stats data for current month, avg by week number
-        statsDTO.setMonth(calculateActivityStatsForMonthByWeek(getMonth(days)));
+        activityStatsMap.put(MONTH_KEY, calculateActivityStatsForMonthByWeek(getMonth(days)));
 
         // get stats data for current year, avg by month
-        statsDTO.setYear(calculateActivityStatsForYearByMonth(getYear(days)));
+        activityStatsMap.put(YEAR_KEY, calculateActivityStatsForYearByMonth(getYear(days)));
 
-        return statsDTO;
+        return activityStatsMap;
     }
 
     public ChartData calculateActivityStatsForDayByHour(Day day) {
         LOGGER.info("Using latest date [{}], to calculate average scores for DAY (per hour)", day.getDate());
 
-        ChartData dayChartData = ChartData.dayChartData();
+        ChartData<List<Number>> dayChartData = new ChartData<>(HOUR_ORDER);
         Map<String, List<String>> hourToValueMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> hourToValueMapping.put(label, new ArrayList<>()));
 
@@ -221,7 +228,7 @@ public class StatsService {
                 .collect(Collectors.toList());
         Collections.reverse(labels);
 
-        ChartData dayChartData = new ChartData(labels);
+        ChartData<List<Number>> dayChartData = new ChartData<>(labels);
         Map<String, List<String>> weekdayLabelToValueMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> weekdayLabelToValueMapping.put(label, new ArrayList<>()));
 
@@ -242,7 +249,7 @@ public class StatsService {
         LOGGER.info("Using [{}-{}], to calculate average scores for MONTH (per week)",
                 month.get(month.size() - 1).getDate(), month.get(0));
 
-        ChartData dayChartData = ChartData.monthChartData();
+        ChartData<List<Number>> dayChartData = new ChartData<>(WEEK_NUM_ORDER);
         Map<String, List<String>> weekStartLabelToScoreMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> weekStartLabelToScoreMapping.put(label, new ArrayList<>()));
 
@@ -264,7 +271,7 @@ public class StatsService {
         LOGGER.info("Using [{}-{}], to calculate average scores for YEAR (per month)",
                 year.get(year.size() - 1).getDate(), year.get(0));
 
-        ChartData dayChartData = ChartData.yearChartData();
+        ChartData<List<Number>> dayChartData = new ChartData<>(MONTHS_ORDER);
         Map<String, List<String>> monthLabelToStartMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> monthLabelToStartMapping.put(label, new ArrayList<>()));
 
@@ -282,12 +289,32 @@ public class StatsService {
         return dayChartData;
     }
 
+    private Map<String, ChartData> calculatePromptStats(List<Day> days) {
+        LOGGER.info("Using [{}-{}], to calculate prompt stats for each answer choice",
+                days.get(days.size() - 1).getDate(), days.get(0));
 
-    private StatsDTO calculatePromptStats(List<Day> days) {
-        return new StatsDTO();
+        Map<String, Map<String, Number>> promptsAnswersMap = new HashMap<>();
+
+        days.forEach(d -> d.getPrompts().forEach(p -> {
+            promptsAnswersMap.putIfAbsent(p.getQuestion(), new HashMap<>());
+            promptsAnswersMap.get(p.getQuestion()).putIfAbsent(p.getSelectedAnswer(), 0);
+            promptsAnswersMap.get(p.getQuestion()).put(
+                    p.getSelectedAnswer(),
+                    promptsAnswersMap.get(p.getQuestion()).get(p.getSelectedAnswer() + 1));
+        }));
+
+        Map<String, ChartData> promptStatsMap = new HashMap<>();
+
+        promptsAnswersMap.keySet().forEach(q -> {
+            ChartData<Number> chartData = new ChartData<>(new ArrayList<>(promptsAnswersMap.get(q).keySet()));
+            chartData.setLabelsDataMap(promptsAnswersMap.get(q));
+            promptStatsMap.put(q, chartData);
+        });
+
+        return promptStatsMap;
     }
 
-    private StatsDTO calculateSummaryStats(List<Day> days) {
-        return new StatsDTO();
+    private Map<String, ChartData> calculateSummaryStats(List<Day> days) {
+        return new HashMap<>();
     }
 }

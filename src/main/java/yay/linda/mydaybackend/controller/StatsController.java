@@ -43,7 +43,7 @@ public class StatsController {
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<Map<StatsType, StatsDTO>> getStats(
+    public ResponseEntity<StatsDTO> getStats(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
         LOGGER.info("GET stats request: sessionToken={}", sessionToken);
