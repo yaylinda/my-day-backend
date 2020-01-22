@@ -1,10 +1,14 @@
 package yay.linda.mydaybackend.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import yay.linda.mydaybackend.entity.Day;
 import yay.linda.mydaybackend.model.ChartData;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,6 +17,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class AggregationService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StatsService.class);
 
     public void aggregateScoreByLabel(Map<String, List<Integer>> map, ChartData chartData) {
         map.forEach((k, v) ->
@@ -53,6 +59,42 @@ public class AggregationService {
 
             chartData.getLabelsDataMap().put(k, activitiesCount);
         });
+    }
+
+    public ChartData<ChartData<Integer>> aggregatePromptAnswerStats(List<Day> days) {
+        LOGGER.info("Using [{}-{}], to calculate prompt stats for each answer choice",
+                days.get(days.size() - 1).getDate(), days.get(0));
+
+//        Set<String> questions = new HashSet<>();
+//        days.forEach(d -> d.getPrompts().forEach(p -> {
+//            questions.add(p.getQuestion());
+//
+//        }));
+//
+//        ChartData chartData = new ChartData();
+
+        // Aggregate and collect data into Map of Maps
+        Map<String, Map<String, Integer>> promptsAnswersMap = new HashMap<>();
+
+        days.forEach(d -> d.getPrompts().forEach(p -> {
+            promptsAnswersMap.putIfAbsent(p.getQuestion(), new HashMap<>());
+            promptsAnswersMap.get(p.getQuestion()).putIfAbsent(p.getSelectedAnswer(), 0);
+            promptsAnswersMap.get(p.getQuestion()).put(
+                    p.getSelectedAnswer(),
+                    promptsAnswersMap.get(p.getQuestion()).get(p.getSelectedAnswer()) + 1);
+        }));
+
+        // Convert Map of Maps in ChartData format
+        ChartData<ChartData<Integer>> chartData = new ChartData<>(new ArrayList<>(promptsAnswersMap.keySet()));
+
+        chartData.getLabels().forEach(q -> {
+            Map<String, Integer> answerToCountsMap = promptsAnswersMap.get(q);
+            ChartData<Integer> innerChartData = new ChartData<>(new ArrayList<>(answerToCountsMap.keySet()));
+            innerChartData.setLabelsDataMap(answerToCountsMap);
+            chartData.getLabelsDataMap().put(q, innerChartData);
+        });
+
+        return chartData;
     }
 
     // TODO - aggregation heatmap

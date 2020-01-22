@@ -7,11 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static yay.linda.mydaybackend.Constants.HOUR_ORDER;
-import static yay.linda.mydaybackend.Constants.MONTHS_ORDER;
-import static yay.linda.mydaybackend.Constants.WEEKDAYS_ORDER;
-import static yay.linda.mydaybackend.Constants.WEEK_NUM_ORDER;
-
 @Data
 public class ChartData<T> {
 

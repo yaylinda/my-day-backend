@@ -8,11 +8,9 @@ import yay.linda.mydaybackend.entity.Day;
 import yay.linda.mydaybackend.model.ChartData;
 import yay.linda.mydaybackend.model.DayEmotionDTO;
 import yay.linda.mydaybackend.model.StatsDTO;
-import yay.linda.mydaybackend.model.StatsType;
 import yay.linda.mydaybackend.repository.DayRepository;
 
 import java.time.LocalDate;
-import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,10 +35,6 @@ import static yay.linda.mydaybackend.Constants.determineWeekStartLabel;
 import static yay.linda.mydaybackend.Constants.getLastSevenDays;
 import static yay.linda.mydaybackend.Constants.getMonth;
 import static yay.linda.mydaybackend.Constants.getYear;
-import static yay.linda.mydaybackend.model.StatsType.ACTIVITY;
-import static yay.linda.mydaybackend.model.StatsType.PROMPT;
-import static yay.linda.mydaybackend.model.StatsType.SCORE;
-import static yay.linda.mydaybackend.model.StatsType.SUMMARY;
 
 @Service
 public class StatsService {
@@ -290,31 +284,23 @@ public class StatsService {
     }
 
     private Map<String, ChartData> calculatePromptStats(List<Day> days) {
-        LOGGER.info("Using [{}-{}], to calculate prompt stats for each answer choice",
-                days.get(days.size() - 1).getDate(), days.get(0));
-
-        Map<String, Map<String, Integer>> promptsAnswersMap = new HashMap<>();
-
-        days.forEach(d -> d.getPrompts().forEach(p -> {
-            promptsAnswersMap.putIfAbsent(p.getQuestion(), new HashMap<>());
-            promptsAnswersMap.get(p.getQuestion()).putIfAbsent(p.getSelectedAnswer(), 0);
-            promptsAnswersMap.get(p.getQuestion()).put(
-                    p.getSelectedAnswer(),
-                    promptsAnswersMap.get(p.getQuestion()).get(p.getSelectedAnswer()) + 1);
-        }));
+        LOGGER.info("Calculating Prompt stats from {} days' data", days.size());
 
         Map<String, ChartData> promptStatsMap = new HashMap<>();
 
-        promptsAnswersMap.keySet().forEach(q -> {
-            ChartData<Integer> chartData = new ChartData<>(new ArrayList<>(promptsAnswersMap.get(q).keySet()));
-            chartData.setLabelsDataMap(promptsAnswersMap.get(q));
-            promptStatsMap.put(q, chartData);
-        });
+        promptStatsMap.put(DAY_KEY, aggregationService.aggregatePromptAnswerStats(Collections.singletonList(days.get(0))));
+
+        promptStatsMap.put(WEEK_KEY, aggregationService.aggregatePromptAnswerStats(getLastSevenDays(days)));
+
+        promptStatsMap.put(MONTH_KEY, aggregationService.aggregatePromptAnswerStats(getMonth(days)));
+
+        promptStatsMap.put(YEAR_KEY, aggregationService.aggregatePromptAnswerStats(getYear(days)));
 
         return promptStatsMap;
     }
 
     private Map<String, ChartData> calculateSummaryStats(List<Day> days) {
+        // TODO
         return new HashMap<>();
     }
 }
