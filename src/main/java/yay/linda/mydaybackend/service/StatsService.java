@@ -293,20 +293,20 @@ public class StatsService {
         LOGGER.info("Using [{}-{}], to calculate prompt stats for each answer choice",
                 days.get(days.size() - 1).getDate(), days.get(0));
 
-        Map<String, Map<String, Number>> promptsAnswersMap = new HashMap<>();
+        Map<String, Map<String, Integer>> promptsAnswersMap = new HashMap<>();
 
         days.forEach(d -> d.getPrompts().forEach(p -> {
             promptsAnswersMap.putIfAbsent(p.getQuestion(), new HashMap<>());
             promptsAnswersMap.get(p.getQuestion()).putIfAbsent(p.getSelectedAnswer(), 0);
             promptsAnswersMap.get(p.getQuestion()).put(
                     p.getSelectedAnswer(),
-                    promptsAnswersMap.get(p.getQuestion()).get(p.getSelectedAnswer() + 1));
+                    promptsAnswersMap.get(p.getQuestion()).get(p.getSelectedAnswer()) + 1);
         }));
 
         Map<String, ChartData> promptStatsMap = new HashMap<>();
 
         promptsAnswersMap.keySet().forEach(q -> {
-            ChartData<Number> chartData = new ChartData<>(new ArrayList<>(promptsAnswersMap.get(q).keySet()));
+            ChartData<Integer> chartData = new ChartData<>(new ArrayList<>(promptsAnswersMap.get(q).keySet()));
             chartData.setLabelsDataMap(promptsAnswersMap.get(q));
             promptStatsMap.put(q, chartData);
         });
