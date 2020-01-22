@@ -35,6 +35,10 @@ public final class Constants {
 
     public static final String YEAR_KEY = "year";
 
+    public static final String COUNTS_KEY = "counts";
+
+    public static final String RECORDS_KEY = "records";
+
     public static List<Day> getLastSevenDays(List<Day> days) {
         if (days.size() <= 7) {
             return days;

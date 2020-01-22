@@ -65,14 +65,6 @@ public class AggregationService {
         LOGGER.info("Using [{}-{}], to calculate prompt stats for each answer choice",
                 days.get(days.size() - 1).getDate(), days.get(0));
 
-//        Set<String> questions = new HashSet<>();
-//        days.forEach(d -> d.getPrompts().forEach(p -> {
-//            questions.add(p.getQuestion());
-//
-//        }));
-//
-//        ChartData chartData = new ChartData();
-
         // Aggregate and collect data into Map of Maps
         Map<String, Map<String, Integer>> promptsAnswersMap = new HashMap<>();
 
