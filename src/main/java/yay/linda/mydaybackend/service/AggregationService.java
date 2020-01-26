@@ -61,22 +61,7 @@ public class AggregationService {
         });
     }
 
-    public ChartData<ChartData<Integer>> aggregatePromptAnswerStats(List<Day> days) {
-        LOGGER.info("Using [{}-{}], to calculate prompt stats for each answer choice",
-                days.get(days.size() - 1).getDate(), days.get(0));
-
-        // Aggregate and collect data into Map of Maps
-        Map<String, Map<String, Integer>> promptsAnswersMap = new HashMap<>();
-
-        days.forEach(d -> d.getPrompts().forEach(p -> {
-            promptsAnswersMap.putIfAbsent(p.getQuestion(), new HashMap<>());
-            promptsAnswersMap.get(p.getQuestion()).putIfAbsent(p.getSelectedAnswer(), 0);
-            promptsAnswersMap.get(p.getQuestion()).put(
-                    p.getSelectedAnswer(),
-                    promptsAnswersMap.get(p.getQuestion()).get(p.getSelectedAnswer()) + 1);
-        }));
-
-        // Convert Map of Maps in ChartData format
+    public ChartData<ChartData<Integer>> aggregatePromptAnswerStats(Map<String, Map<String, Integer>> promptsAnswersMap) {
         ChartData<ChartData<Integer>> chartData = new ChartData<>(new ArrayList<>(promptsAnswersMap.keySet()));
 
         chartData.getLabels().forEach(q -> {

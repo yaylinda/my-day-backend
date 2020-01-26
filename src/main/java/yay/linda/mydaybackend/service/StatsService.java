@@ -1,5 +1,6 @@
 package yay.linda.mydaybackend.service;
 
+import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ import static yay.linda.mydaybackend.Constants.HOUR_ORDER;
 import static yay.linda.mydaybackend.Constants.MONTHS_ORDER;
 import static yay.linda.mydaybackend.Constants.MONTH_DAY_FORMATTER;
 import static yay.linda.mydaybackend.Constants.MONTH_KEY;
+import static yay.linda.mydaybackend.Constants.RECORDS_KEY;
 import static yay.linda.mydaybackend.Constants.WEEK_KEY;
 import static yay.linda.mydaybackend.Constants.WEEK_NUM_ORDER;
 import static yay.linda.mydaybackend.Constants.YEAR_KEY;
@@ -38,6 +40,9 @@ import static yay.linda.mydaybackend.Constants.determineWeekStartLabel;
 import static yay.linda.mydaybackend.Constants.getLastSevenDays;
 import static yay.linda.mydaybackend.Constants.getMonth;
 import static yay.linda.mydaybackend.Constants.getYear;
+import static yay.linda.mydaybackend.model.EventType.ACTIVITY;
+import static yay.linda.mydaybackend.model.EventType.EMOTION;
+import static yay.linda.mydaybackend.model.EventType.PROMPT;
 
 @Service
 public class StatsService {
@@ -291,79 +296,80 @@ public class StatsService {
 
         Map<String, ChartData> promptStatsMap = new HashMap<>();
 
-        promptStatsMap.put(DAY_KEY, aggregationService.aggregatePromptAnswerStats(Collections.singletonList(days.get(0))));
+        promptStatsMap.put(DAY_KEY, aggregationService.aggregatePromptAnswerStats(
+                collectPromptAnswerStats(Collections.singletonList(days.get(0)))));
 
-        promptStatsMap.put(WEEK_KEY, aggregationService.aggregatePromptAnswerStats(getLastSevenDays(days)));
+        promptStatsMap.put(WEEK_KEY, aggregationService.aggregatePromptAnswerStats(
+                collectPromptAnswerStats(getLastSevenDays(days))));
 
-        promptStatsMap.put(MONTH_KEY, aggregationService.aggregatePromptAnswerStats(getMonth(days)));
+        promptStatsMap.put(MONTH_KEY, aggregationService.aggregatePromptAnswerStats(
+                collectPromptAnswerStats(getMonth(days))));
 
-        promptStatsMap.put(YEAR_KEY, aggregationService.aggregatePromptAnswerStats(getYear(days)));
+        promptStatsMap.put(YEAR_KEY, aggregationService.aggregatePromptAnswerStats(
+                collectPromptAnswerStats(getYear(days))));
 
         return promptStatsMap;
+    }
+
+    private Map<String, Map<String, Integer>> collectPromptAnswerStats(List<Day> days) {
+        LOGGER.info("Using [{}-{}], to collect prompt stats for each answer choice",
+                days.get(days.size() - 1).getDate(), days.get(0));
+
+        Map<String, Map<String, Integer>> promptsAnswersMap = new HashMap<>();
+
+        days.forEach(d -> d.getPrompts().forEach(p -> {
+            promptsAnswersMap.putIfAbsent(p.getQuestion(), new HashMap<>());
+            promptsAnswersMap.get(p.getQuestion()).putIfAbsent(p.getSelectedAnswer(), 0);
+            promptsAnswersMap.get(p.getQuestion()).put(
+                    p.getSelectedAnswer(),
+                    promptsAnswersMap.get(p.getQuestion()).get(p.getSelectedAnswer()) + 1);
+        }));
+
+        return promptsAnswersMap;
     }
 
     private Map<String, ChartData> calculateSummaryStats(List<Day> days) {
         LOGGER.info("Calculating Summary stats from {} days' data", days.size());
 
-        // counts
-        // total days with any records
-        // total days since start of app
-        // count of days with scores
-        // count of days with activities
-        // count of days with prompts
-        // count of total scores recorded
-        // count of total activities recorded
-        // count of total prompts recorded
-
-        // records
-        // day with lowest avg score
-        // lowest score value
-        // day with highest avg score
-        // highest score value
-        // day with most scores
-        // day with most activities
-        // day with most prompts
-        // most popular score
-        // most popular activity
-        // most answered prompt
-        // answer distribution of most answered prompt - TODO - calculate using aggregatePromptAnswerStats(days)
-
         // Variable to accumulate stats
-        int daysSinceStart = days.size();
-        int daysRecorded = 0;
-        int daysWithScores = 0;
-        int daysWithActivities = 0;
-        int daysWithPrompts = 0;
-        int numScores = 0;
-        int numActivities = 0;
-        int numPrompts = 0;
+        int numDaysTotal = days.size();
+        int numDaysRecorded = 0;
+        int numDaysWithScore = 0;
+        int numDaysWithActivity = 0;
+        int numDaysWithPrompt = 0;
+        int numScoresTotal = 0;
+        int numActivitiesTotal = 0;
+        int numPromptsTotal = 0;
+
         double lowestAvgDayScore = 5.0;
-        String dateOfLowestScore = "";
+        String lowestAvgDayScoreDate = "";
         double highestAvgDayScore = 0.0;
-        String dateOfHighestScore = "";
+        String highestAvgDayScoreDate = "";
+
         Map<String, Map<EventType, Integer>> dateToEventCountMap = new HashMap<>();
         Map<Integer, Integer> scoreCountMap = new HashMap<>();
         Map<String, Integer> activityCountMap = new HashMap<>();
+//        Map<String, Map<String, Integer>> promptAnswerStatsMap = collectPromptAnswerStats(days);
 
         // Go through days and do accumulation
         for (Day d : days) {
 
             // count days where any event is recorded
             if (!CollectionUtils.isEmpty(d.getEmotions())
-                    && !CollectionUtils.isEmpty(d.getActivities())
-                    && !CollectionUtils.isEmpty(d.getPrompts())) {
-                daysRecorded += 1;
+                    || !CollectionUtils.isEmpty(d.getActivities())
+                    || !CollectionUtils.isEmpty(d.getPrompts())) {
+                numDaysRecorded += 1;
             }
 
             // count days where one type of event is recorded
-            daysWithScores += CollectionUtils.isEmpty(d.getEmotions()) ? 0 : 1;
-            daysWithActivities += CollectionUtils.isEmpty(d.getActivities()) ? 0 : 1;
-            daysWithPrompts += CollectionUtils.isEmpty(d.getPrompts()) ? 0 : 1;
+            numDaysWithScore += CollectionUtils.isEmpty(d.getEmotions()) ? 0 : 1;
+            numDaysWithActivity += CollectionUtils.isEmpty(d.getActivities()) ? 0 : 1;
+            numDaysWithPrompt += CollectionUtils.isEmpty(d.getPrompts()) ? 0 : 1;
 
             // count event types recorded
-            numScores += d.getEmotions().size();
-            numActivities += d.getActivities().size();
-            numPrompts += d.getPrompts().size();
+            numScoresTotal += d.getEmotions().size();
+            numActivitiesTotal += d.getActivities().size();
+            numPromptsTotal += d.getPrompts().size();
 
             // avg day score
             double avgScore = d.getEmotions().stream()
@@ -373,18 +379,18 @@ public class StatsService {
 
             if (avgScore <= lowestAvgDayScore) {
                 lowestAvgDayScore = avgScore;
-                dateOfLowestScore = d.getDate();
+                lowestAvgDayScoreDate = d.getDate();
             }
 
             if (avgScore >= highestAvgDayScore) {
                 highestAvgDayScore = avgScore;
-                dateOfHighestScore = d.getDate();
+                highestAvgDayScoreDate = d.getDate();
             }
 
             // accumulate counts in maps
 
             dateToEventCountMap.put(d.getDate(), Map.of(
-                    EventType.EMOTION, d.getEmotions().size(),
+                    EMOTION, d.getEmotions().size(),
                     EventType.ACTIVITY, d.getActivities().size(),
                     EventType.PROMPT, d.getPrompts().size()));
 
@@ -397,10 +403,70 @@ public class StatsService {
                 activityCountMap.putIfAbsent(a.getName(), 0);
                 activityCountMap.put(a.getName(), activityCountMap.get(a.getName()) + 1);
             });
-
         }
 
+        // Set stats in summary stats map
         Map<String, ChartData> summaryStatsMap = new HashMap<>();
+
+        // Set Count stats
+        ChartData<Integer> countsChartData = new ChartData<>();
+        countsChartData.setLabelsDataMap(Map.of(
+                "numDaysTotal", numDaysTotal,
+                "numDaysRecorded", numDaysRecorded,
+                "numDaysWithScore", numDaysWithScore,
+                "numDaysWithActivity", numDaysWithActivity,
+                "numDaysWithPrompt", numDaysWithPrompt,
+                "numScoresTotal", numScoresTotal,
+                "numActivitiesTotal", numActivitiesTotal,
+                "numPromptsTotal", numPromptsTotal
+        ));
+        countsChartData.setLabelsFromDataMap();
+        summaryStatsMap.put(COUNTS_KEY, countsChartData);
+
+        // Accumulate Maps for record counts
+        String mostScoresDate = "";
+        int mostScoresPerDayValue = 0;
+
+        String mostActivitiesDate = "";
+        int mostActivitiesPerDayValue = 0;
+
+        String mostPromptsDate = "";
+        int mostPromptsPerDayValue = 0;
+
+        for (String date : dateToEventCountMap.keySet()) {
+            Map<EventType, Integer> value = dateToEventCountMap.get(date);
+            if (value.get(EMOTION) > mostScoresPerDayValue) {
+                mostScoresDate = date;
+                mostScoresPerDayValue = value.get(EMOTION);
+            }
+            if (value.get(ACTIVITY) > mostActivitiesPerDayValue) {
+                mostActivitiesDate = date;
+                mostActivitiesPerDayValue = value.get(ACTIVITY);
+            }
+            if (value.get(PROMPT) > mostPromptsPerDayValue) {
+                mostPromptsDate = date;
+                mostPromptsPerDayValue = value.get(PROMPT);
+            }
+        }
+
+        // Set Records stats
+        ChartData<Object> recordsChartData = new ChartData<>();
+        recordsChartData.setLabelsDataMap(Map.of(
+                "lowestAvgDayScore", lowestAvgDayScore,
+                "lowestAvgDayScoreDate", lowestAvgDayScoreDate,
+                "highestAvgDayScore", highestAvgDayScore,
+                "highestAvgDayScoreDate", highestAvgDayScoreDate,
+                "mostScoresDate", mostScoresDate,
+                "mostScoresPerDayValue", mostScoresPerDayValue,
+                "mostActivitiesDate", mostActivitiesDate,
+                "mostActivitiesPerDayValue", mostActivitiesPerDayValue,
+                "mostPromptsDate", mostPromptsDate,
+                "mostPromptsPerDayValue", mostPromptsPerDayValue
+        )); // TODO - might add stats for the answers of the most answered prompt
+
+        recordsChartData.setLabelsFromDataMap();
+        summaryStatsMap.put(RECORDS_KEY, recordsChartData);
+
 
         return summaryStatsMap;
     }
