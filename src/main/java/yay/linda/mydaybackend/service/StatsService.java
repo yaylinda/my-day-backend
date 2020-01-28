@@ -1,6 +1,5 @@
 package yay.linda.mydaybackend.service;
 
-import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -466,7 +465,6 @@ public class StatsService {
 
         recordsChartData.setLabelsFromDataMap();
         summaryStatsMap.put(RECORDS_KEY, recordsChartData);
-
 
         return summaryStatsMap;
     }
