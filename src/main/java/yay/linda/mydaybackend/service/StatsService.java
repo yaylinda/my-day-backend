@@ -13,6 +13,7 @@ import yay.linda.mydaybackend.model.StatsDTO;
 import yay.linda.mydaybackend.repository.DayRepository;
 
 import java.time.LocalDate;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.time.format.TextStyle.SHORT_STANDALONE;
@@ -332,7 +334,7 @@ public class StatsService {
 
         // Variable to accumulate stats
         int numDaysTotal = days.size();
-        int numDaysRecorded = 0;
+        int numDaysWithRecords = 0;
         int numDaysWithScore = 0;
         int numDaysWithActivity = 0;
         int numDaysWithPrompt = 0;
@@ -348,7 +350,14 @@ public class StatsService {
         Map<String, Map<EventType, Integer>> dateToEventCountMap = new HashMap<>();
         Map<Integer, Integer> scoreCountMap = new HashMap<>();
         Map<String, Integer> activityCountMap = new HashMap<>();
-//        Map<String, Map<String, Integer>> promptAnswerStatsMap = collectPromptAnswerStats(days);
+        Map<String, Integer> promptCountMap = collectPromptAnswerStats(days).entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> e.getValue().values()
+                                .stream()
+                                .reduce((a, b) -> a + b)
+                                .orElse(0)));
 
         // Go through days and do accumulation
         for (Day d : days) {
@@ -357,7 +366,7 @@ public class StatsService {
             if (!CollectionUtils.isEmpty(d.getEmotions())
                     || !CollectionUtils.isEmpty(d.getActivities())
                     || !CollectionUtils.isEmpty(d.getPrompts())) {
-                numDaysRecorded += 1;
+                numDaysWithRecords += 1;
             }
 
             // count days where one type of event is recorded
@@ -411,7 +420,7 @@ public class StatsService {
         ChartData<Integer> countsChartData = new ChartData<>();
         countsChartData.setLabelsDataMap(Map.of(
                 "numDaysTotal", numDaysTotal,
-                "numDaysRecorded", numDaysRecorded,
+                "numDaysWithRecords", numDaysWithRecords,
                 "numDaysWithScore", numDaysWithScore,
                 "numDaysWithActivity", numDaysWithActivity,
                 "numDaysWithPrompt", numDaysWithPrompt,
@@ -448,6 +457,18 @@ public class StatsService {
             }
         }
 
+        // Find most common score
+        Integer mostCommonScore = (Integer) aggregationService.getMostCommon(scoreCountMap);
+        Integer mostCommonScoreCount = scoreCountMap.get(mostCommonScore);
+
+        // Find most common activity
+        String mostCommonActivity = (String) aggregationService.getMostCommon(activityCountMap);
+        Integer mostCommonActivityCount = activityCountMap.get(mostCommonActivity);
+
+        // Find most common prompt
+        String mostCommonPrompt = (String) aggregationService.getMostCommon(promptCountMap);
+        Integer mostCommonPromptCount = promptCountMap.get(mostCommonPrompt);
+
         // Set Records stats
         ChartData<Object> recordsChartData = new ChartData<>();
         recordsChartData.setLabelsDataMap(Map.of(
@@ -455,13 +476,19 @@ public class StatsService {
                 "lowestAvgDayScoreDate", lowestAvgDayScoreDate,
                 "highestAvgDayScore", highestAvgDayScore,
                 "highestAvgDayScoreDate", highestAvgDayScoreDate,
-                "mostScoresDate", mostScoresDate,
-                "mostScoresPerDayValue", mostScoresPerDayValue,
-                "mostActivitiesDate", mostActivitiesDate,
-                "mostActivitiesPerDayValue", mostActivitiesPerDayValue,
-                "mostPromptsDate", mostPromptsDate,
-                "mostPromptsPerDayValue", mostPromptsPerDayValue
-        )); // TODO - might add stats for the answers of the most answered prompt
+//                "mostScoresDate", mostScoresDate,
+//                "mostScoresPerDayValue", mostScoresPerDayValue,
+//                "mostActivitiesDate", mostActivitiesDate,
+//                "mostActivitiesPerDayValue", mostActivitiesPerDayValue,
+//                "mostPromptsDate", mostPromptsDate,
+//                "mostPromptsPerDayValue", mostPromptsPerDayValue,
+                "mostCommonScore", mostCommonScore,
+                "mostCommonScoreCount", mostCommonScoreCount,
+                "mostCommonActivity", mostCommonActivity,
+                "mostCommonActivityCount", mostCommonActivityCount,
+                "mostCommonPrompt", mostCommonPrompt,
+                "mostCommonPromptCount", mostCommonPromptCount
+        ));
 
         recordsChartData.setLabelsFromDataMap();
         summaryStatsMap.put(RECORDS_KEY, recordsChartData);

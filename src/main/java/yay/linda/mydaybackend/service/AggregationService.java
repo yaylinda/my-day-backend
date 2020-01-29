@@ -1,5 +1,6 @@
 package yay.linda.mydaybackend.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -72,6 +73,21 @@ public class AggregationService {
         });
 
         return chartData;
+    }
+
+    public Object getMostCommon(Map<?, Integer> map) {
+        Integer mostCommonCount = 0;
+        Object mostCommon = null;
+
+        for (Object k : map.keySet()) {
+            Integer count = map.get(k);
+            if (count > mostCommonCount) {
+                mostCommonCount = count;
+                mostCommon = k;
+            }
+        }
+
+        return mostCommon;
     }
 
     // TODO - aggregation heatmap
