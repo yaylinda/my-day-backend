@@ -13,7 +13,6 @@ import yay.linda.mydaybackend.model.StatsDTO;
 import yay.linda.mydaybackend.repository.DayRepository;
 
 import java.time.LocalDate;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.time.format.TextStyle.SHORT_STANDALONE;
@@ -41,9 +39,7 @@ import static yay.linda.mydaybackend.Constants.determineWeekStartLabel;
 import static yay.linda.mydaybackend.Constants.getLastSevenDays;
 import static yay.linda.mydaybackend.Constants.getMonth;
 import static yay.linda.mydaybackend.Constants.getYear;
-import static yay.linda.mydaybackend.model.EventType.ACTIVITY;
 import static yay.linda.mydaybackend.model.EventType.EMOTION;
-import static yay.linda.mydaybackend.model.EventType.PROMPT;
 
 @Service
 public class StatsService {
@@ -432,30 +428,31 @@ public class StatsService {
         summaryStatsMap.put(COUNTS_KEY, countsChartData);
 
         // Accumulate Maps for record counts
-        String mostScoresDate = "";
-        int mostScoresPerDayValue = 0;
-
-        String mostActivitiesDate = "";
-        int mostActivitiesPerDayValue = 0;
-
-        String mostPromptsDate = "";
-        int mostPromptsPerDayValue = 0;
-
-        for (String date : dateToEventCountMap.keySet()) {
-            Map<EventType, Integer> value = dateToEventCountMap.get(date);
-            if (value.get(EMOTION) > mostScoresPerDayValue) {
-                mostScoresDate = date;
-                mostScoresPerDayValue = value.get(EMOTION);
-            }
-            if (value.get(ACTIVITY) > mostActivitiesPerDayValue) {
-                mostActivitiesDate = date;
-                mostActivitiesPerDayValue = value.get(ACTIVITY);
-            }
-            if (value.get(PROMPT) > mostPromptsPerDayValue) {
-                mostPromptsDate = date;
-                mostPromptsPerDayValue = value.get(PROMPT);
-            }
-        }
+        // TODO - not used currently
+//        String mostScoresDate = "";
+//        int mostScoresPerDayValue = 0;
+//
+//        String mostActivitiesDate = "";
+//        int mostActivitiesPerDayValue = 0;
+//
+//        String mostPromptsDate = "";
+//        int mostPromptsPerDayValue = 0;
+//
+//        for (String date : dateToEventCountMap.keySet()) {
+//            Map<EventType, Integer> value = dateToEventCountMap.get(date);
+//            if (value.get(EMOTION) > mostScoresPerDayValue) {
+//                mostScoresDate = date;
+//                mostScoresPerDayValue = value.get(EMOTION);
+//            }
+//            if (value.get(ACTIVITY) > mostActivitiesPerDayValue) {
+//                mostActivitiesDate = date;
+//                mostActivitiesPerDayValue = value.get(ACTIVITY);
+//            }
+//            if (value.get(PROMPT) > mostPromptsPerDayValue) {
+//                mostPromptsDate = date;
+//                mostPromptsPerDayValue = value.get(PROMPT);
+//            }
+//        }
 
         // Find most common score
         Integer mostCommonScore = (Integer) aggregationService.getMostCommon(scoreCountMap);
