@@ -158,13 +158,14 @@ public class StatsService {
         LOGGER.info("Using [{}-{}], to calculate average scores for YEAR (per month)",
                 year.get(year.size() - 1).getDate(), year.get(0));
 
-        LocalDate localDate = LocalDate.parse(year.get(0).getDate());
         ChartData<Number> dayChartData = new ChartData<>(MONTHS_ORDER);
         Map<String, List<Integer>> monthLabelToStartMapping = new HashMap<>();
         dayChartData.getLabels().forEach((label) -> monthLabelToStartMapping.put(label, new ArrayList<>()));
 
         year.forEach(d -> {
-            String monthLabel = localDate.getMonth().getDisplayName(SHORT_STANDALONE, Locale.ENGLISH);
+            String monthLabel = LocalDate.parse(d.getDate())
+                    .getMonth()
+                    .getDisplayName(SHORT_STANDALONE, Locale.ENGLISH);
 
             monthLabelToStartMapping.get(monthLabel)
                     .addAll(d.getEmotions()
