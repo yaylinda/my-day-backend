@@ -6,7 +6,8 @@ plugins {
 
 group = 'yay.linda'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '13'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 repositories {
 	mavenCentral()

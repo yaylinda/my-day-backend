@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yay.linda.mydaybackend.web.error.ErrorDTO;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static yay.linda.mydaybackend.web.error.ErrorMessages.UNEXPECTED_ERROR;
@@ -29,6 +30,8 @@ public class AppDefaultController {
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
     public ResponseEntity<Map<String, String>> healthCheck() {
-        return ResponseEntity.ok(Map.of("status", "OK"));
+        return ResponseEntity.ok(new HashMap<String, String>() {{
+            put("status", "OK");
+        }});
     }
 }

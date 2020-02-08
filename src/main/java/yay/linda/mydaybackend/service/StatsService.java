@@ -1,5 +1,6 @@
 package yay.linda.mydaybackend.service;
 
+import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -393,11 +394,11 @@ public class StatsService {
             }
 
             // accumulate counts in maps
-
-            dateToEventCountMap.put(d.getDate(), Map.of(
-                    EMOTION, d.getEmotions().size(),
-                    EventType.ACTIVITY, d.getActivities().size(),
-                    EventType.PROMPT, d.getPrompts().size()));
+            dateToEventCountMap.put(d.getDate(), new HashMap<EventType, Integer>() {{
+                    put(EMOTION, d.getEmotions().size());
+                    put(EventType.ACTIVITY, d.getActivities().size());
+                    put(EventType.PROMPT, d.getPrompts().size());
+            }});
 
             d.getEmotions().forEach(e -> {
                 scoreCountMap.putIfAbsent(e.getEmotionScore(), 0);
@@ -413,47 +414,31 @@ public class StatsService {
         // Set stats in summary stats map
         Map<String, ChartData> summaryStatsMap = new HashMap<>();
 
+        // Set final variables
+        final int finalNumDaysWithRecords = numDaysWithRecords;
+        final int finalNumDaysWithScore = numDaysWithScore;
+        final int finalNumDaysWithActivity = numDaysWithActivity;
+        final int finalNumDaysWithPrompt = numDaysWithPrompt;
+        final int finalNumScoresTotal = numScoresTotal;
+        final int finalNumActivitiesTotal = numActivitiesTotal;
+        final int finalNumPromptsTotal = numPromptsTotal;
+
         // Set Count stats
         ChartData<Integer> countsChartData = new ChartData<>();
-        countsChartData.setLabelsDataMap(Map.of(
-                "numDaysTotal", numDaysTotal,
-                "numDaysWithRecords", numDaysWithRecords,
-                "numDaysWithScore", numDaysWithScore,
-                "numDaysWithActivity", numDaysWithActivity,
-                "numDaysWithPrompt", numDaysWithPrompt,
-                "numScoresTotal", numScoresTotal,
-                "numActivitiesTotal", numActivitiesTotal,
-                "numPromptsTotal", numPromptsTotal
-        ));
+        countsChartData.setLabelsDataMap(new HashMap<String, Integer>(){
+            {
+                put("numDaysTotal", numDaysTotal);
+                put("numDaysWithRecords", finalNumDaysWithRecords);
+                put("numDaysWithScore", finalNumDaysWithScore);
+                put("numDaysWithActivity", finalNumDaysWithActivity);
+                put("numDaysWithPrompt", finalNumDaysWithPrompt);
+                put("numScoresTotal", finalNumScoresTotal);
+                put("numActivitiesTotal", finalNumActivitiesTotal);
+                put("numPromptsTotal", finalNumPromptsTotal);
+            }
+        });
         countsChartData.setLabelsFromDataMap();
         summaryStatsMap.put(COUNTS_KEY, countsChartData);
-
-        // Accumulate Maps for record counts
-        // TODO - not used currently
-//        String mostScoresDate = "";
-//        int mostScoresPerDayValue = 0;
-//
-//        String mostActivitiesDate = "";
-//        int mostActivitiesPerDayValue = 0;
-//
-//        String mostPromptsDate = "";
-//        int mostPromptsPerDayValue = 0;
-//
-//        for (String date : dateToEventCountMap.keySet()) {
-//            Map<EventType, Integer> value = dateToEventCountMap.get(date);
-//            if (value.get(EMOTION) > mostScoresPerDayValue) {
-//                mostScoresDate = date;
-//                mostScoresPerDayValue = value.get(EMOTION);
-//            }
-//            if (value.get(ACTIVITY) > mostActivitiesPerDayValue) {
-//                mostActivitiesDate = date;
-//                mostActivitiesPerDayValue = value.get(ACTIVITY);
-//            }
-//            if (value.get(PROMPT) > mostPromptsPerDayValue) {
-//                mostPromptsDate = date;
-//                mostPromptsPerDayValue = value.get(PROMPT);
-//            }
-//        }
 
         // Find most common score
         Integer mostCommonScore = (Integer) aggregationService.getMostCommon(scoreCountMap);
@@ -467,26 +452,28 @@ public class StatsService {
         String mostCommonPrompt = (String) aggregationService.getMostCommon(promptCountMap);
         Integer mostCommonPromptCount = promptCountMap.get(mostCommonPrompt);
 
+        // Set final variables
+        final double finalLowestAvgDayScore = lowestAvgDayScore;
+        final String finalLowestAvgDayScoreDate = lowestAvgDayScoreDate;
+        final double finalHighestAvgDayScore = highestAvgDayScore;
+        final String finalHighestAvgDayScoreDate = highestAvgDayScoreDate;
+
         // Set Records stats
         ChartData<Object> recordsChartData = new ChartData<>();
-        recordsChartData.setLabelsDataMap(Map.of(
-                "lowestAvgDayScore", lowestAvgDayScore,
-                "lowestAvgDayScoreDate", lowestAvgDayScoreDate,
-                "highestAvgDayScore", highestAvgDayScore,
-                "highestAvgDayScoreDate", highestAvgDayScoreDate,
-//                "mostScoresDate", mostScoresDate,
-//                "mostScoresPerDayValue", mostScoresPerDayValue,
-//                "mostActivitiesDate", mostActivitiesDate,
-//                "mostActivitiesPerDayValue", mostActivitiesPerDayValue,
-//                "mostPromptsDate", mostPromptsDate,
-//                "mostPromptsPerDayValue", mostPromptsPerDayValue,
-                "mostCommonScore", mostCommonScore,
-                "mostCommonScoreCount", mostCommonScoreCount,
-                "mostCommonActivity", mostCommonActivity,
-                "mostCommonActivityCount", mostCommonActivityCount,
-                "mostCommonPrompt", mostCommonPrompt,
-                "mostCommonPromptCount", mostCommonPromptCount
-        ));
+        recordsChartData.setLabelsDataMap(new HashMap<String, Object>() {
+            {
+                put("lowestAvgDayScore", finalLowestAvgDayScore);
+                put("lowestAvgDayScoreDate", finalLowestAvgDayScoreDate);
+                put("highestAvgDayScore", finalHighestAvgDayScore);
+                put("highestAvgDayScoreDate", finalHighestAvgDayScoreDate);
+                put("mostCommonScore", mostCommonScore);
+                put("mostCommonScoreCount", mostCommonScoreCount);
+                put("mostCommonActivity", mostCommonActivity);
+                put("mostCommonActivityCount", mostCommonActivityCount);
+                put("mostCommonPrompt", mostCommonPrompt);
+                put("mostCommonPromptCount", mostCommonPromptCount);
+            }
+        });
 
         recordsChartData.setLabelsFromDataMap();
         summaryStatsMap.put(RECORDS_KEY, recordsChartData);

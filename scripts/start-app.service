@@ -1,0 +1,8 @@
+[Unit]
+Description=Start my-day-app backend
+
+[Service]
+ExecStart=/home/ec2-user/my-day-backend/scripts/start-app.sh
+
+[Install]
+WantedBy=multi-user.target
