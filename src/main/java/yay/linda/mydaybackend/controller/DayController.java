@@ -53,29 +53,29 @@ public class DayController {
     public ResponseEntity<List<DayDTO>> getDays(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken,
-            @ApiParam(value = "timezone", required = true, defaultValue = "UTC")
-            @RequestHeader(value = "timezone", defaultValue = "UTC") String timezone) {
+            @ApiParam(value = "Timezone", required = true, defaultValue = "UTC")
+            @RequestHeader(value = "Timezone", defaultValue = "UTC") String timezone) {
         LOGGER.info("GET days request: timezone={}, sessionToken={}", timezone, sessionToken);
         return ResponseEntity.ok(dayService.getDays(timezone, sessionToken));
     }
 
-    @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Successfully persisted a DayDTO for a User, given a valid Session-Token")
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Successfully created Day"),
-            @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
-            @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
-    })
-    public ResponseEntity<DayDTO> createDay(
-            @ApiParam(value = "dayDTO", required = true)
-            @RequestBody DayDTO dayDTO,
-            @ApiParam(value = "timezone", required = true, defaultValue = "UTC")
-            @RequestHeader(value = "timezone", defaultValue = "UTC") String timezone,
-            @ApiParam(value = "Session-Token", required = true)
-            @RequestHeader("Session-Token") String sessionToken) {
-        LOGGER.info("POST day request: dayDTO={}, timezone={}, sessionToken={}", dayDTO, timezone, sessionToken);
-        return new ResponseEntity<>(dayService.createDay(dayDTO, timezone, sessionToken), HttpStatus.CREATED);
-    }
+//    @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+//    @ApiOperation(value = "Successfully persisted a DayDTO for a User, given a valid Session-Token")
+//    @ApiResponses(value = {
+//            @ApiResponse(code = 201, message = "Successfully created Day"),
+//            @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
+//            @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
+//    })
+//    public ResponseEntity<DayDTO> createDay(
+//            @ApiParam(value = "dayDTO", required = true)
+//            @RequestBody DayDTO dayDTO,
+//            @ApiParam(value = "timezone", required = true, defaultValue = "UTC")
+//            @RequestHeader(value = "timezone", defaultValue = "UTC") String timezone,
+//            @ApiParam(value = "Session-Token", required = true)
+//            @RequestHeader("Session-Token") String sessionToken) {
+//        LOGGER.info("POST day request: dayDTO={}, timezone={}, sessionToken={}", dayDTO, timezone, sessionToken);
+//        return new ResponseEntity<>(dayService.createDay(dayDTO, timezone, sessionToken), HttpStatus.CREATED);
+//    }
 
     @PutMapping(value = "/{dayId}/{eventType}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Successfully added a DayEvent to a Day given a valid dayId and Session-Token")
@@ -92,8 +92,8 @@ public class DayController {
             @PathVariable(value="eventType") String eventType,
             @ApiParam(value = "dayEvent", required = true)
             @RequestBody DayEventDTO dayEvent,
-            @ApiParam(value = "timezone", required = true, defaultValue = "UTC")
-            @RequestHeader(value = "timezone", defaultValue = "UTC") String timezone,
+            @ApiParam(value = "Timezone", required = true, defaultValue = "UTC")
+            @RequestHeader(value = "Timezone", defaultValue = "UTC") String timezone,
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
 
