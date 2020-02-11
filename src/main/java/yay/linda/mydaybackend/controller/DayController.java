@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.model.DayEventDTO;
@@ -51,9 +52,11 @@ public class DayController {
     })
     public ResponseEntity<List<DayDTO>> getDays(
             @ApiParam(value = "Session-Token", required = true)
-            @RequestHeader("Session-Token") String sessionToken) {
-        LOGGER.info("GET days request: sessionToken={}", sessionToken);
-        return ResponseEntity.ok(dayService.getDays(sessionToken));
+            @RequestHeader("Session-Token") String sessionToken,
+            @ApiParam(value = "timezone", required = true, defaultValue = "UTC")
+            @RequestHeader(value = "timezone", defaultValue = "UTC") String timezone) {
+        LOGGER.info("GET days request: timezone={}, sessionToken={}", timezone, sessionToken);
+        return ResponseEntity.ok(dayService.getDays(timezone, sessionToken));
     }
 
     @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -66,10 +69,12 @@ public class DayController {
     public ResponseEntity<DayDTO> createDay(
             @ApiParam(value = "dayDTO", required = true)
             @RequestBody DayDTO dayDTO,
+            @ApiParam(value = "timezone", required = true, defaultValue = "UTC")
+            @RequestHeader(value = "timezone", defaultValue = "UTC") String timezone,
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
-        LOGGER.info("POST day request: dayDTO={}, sessionToken={}", dayDTO, sessionToken);
-        return new ResponseEntity<>(dayService.createDay(dayDTO, sessionToken), HttpStatus.CREATED);
+        LOGGER.info("POST day request: dayDTO={}, timezone={}, sessionToken={}", dayDTO, timezone, sessionToken);
+        return new ResponseEntity<>(dayService.createDay(dayDTO, timezone, sessionToken), HttpStatus.CREATED);
     }
 
     @PutMapping(value = "/{dayId}/{eventType}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -87,11 +92,13 @@ public class DayController {
             @PathVariable(value="eventType") String eventType,
             @ApiParam(value = "dayEvent", required = true)
             @RequestBody DayEventDTO dayEvent,
+            @ApiParam(value = "timezone", required = true, defaultValue = "UTC")
+            @RequestHeader(value = "timezone", defaultValue = "UTC") String timezone,
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
 
-        LOGGER.info("PUT day request: dayId={}, eventType={}, dayEvent={}, sessionToken={}",
-                dayId, eventType, dayEvent, sessionToken);
-        return new ResponseEntity<>(dayService.updateDay(dayId, eventType, dayEvent, sessionToken), HttpStatus.OK);
+        LOGGER.info("PUT day request: dayId={}, eventType={}, dayEvent={}, timezone={}, sessionToken={}",
+                dayId, eventType, dayEvent, timezone, sessionToken);
+        return new ResponseEntity<>(dayService.updateDay(dayId, eventType, dayEvent, timezone, sessionToken), HttpStatus.OK);
     }
 }

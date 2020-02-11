@@ -17,4 +17,5 @@ public class DayActivityDTO {
 
     private String startTime;
     private String endTime;
+    private String timezone;
 }

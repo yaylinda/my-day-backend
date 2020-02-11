@@ -15,4 +15,5 @@ public class DayEmotionDTO {
 
     private String startTime; // HH:MM AM
     private String endTime;
+    private String timezone;
 }

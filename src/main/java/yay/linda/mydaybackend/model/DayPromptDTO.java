@@ -14,4 +14,5 @@ public class DayPromptDTO {
     private String selectedAnswer;
 
     private String startTime;
+    private String timezone;
 }

@@ -15,8 +15,11 @@ import yay.linda.mydaybackend.repository.DayRepository;
 import yay.linda.mydaybackend.web.error.NotFoundException;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -33,15 +36,15 @@ public class DayService {
     @Autowired
     private SessionService sessionService;
 
-    // issue might arrise later where a user will have many Days. we should not have to load the entire list.
+    // issue might arise later where a user will have many Days. we should not have to load the entire list.
     // user query params for pagination
     // for now, limit to 10 days
-    public List<DayDTO> getDays(String sessionToken) {
+    public List<DayDTO> getDays(String timezone, String sessionToken) {
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         Optional<Day> optionalDay = dayRepository.findTopByUsernameOrderByDateDesc(username);
 
-        LocalDate today = LocalDate.now();
+        ZonedDateTime today = ZonedDateTime.now(ZoneId.of(timezone));
 
         if (optionalDay.isPresent()) {
             LOGGER.info("Found latest Day data");
@@ -50,7 +53,7 @@ public class DayService {
                 LOGGER.info("Latest Day date {} does not equal today's date {}. Catching up...",
                         optionalDay.get().getDate(), today.format(YEAR_MONTH_DAY_FORMATTER));
 
-                LocalDate latest = LocalDate.parse(optionalDay.get().getDate(), YEAR_MONTH_DAY_FORMATTER);
+                ZonedDateTime latest = ZonedDateTime.parse(optionalDay.get().getDate(), YEAR_MONTH_DAY_FORMATTER);
 
                 List<Day> daysToSave = new ArrayList<>();
 
@@ -78,10 +81,22 @@ public class DayService {
         return days.stream().map(d -> new DayDTO(d, true)).collect(Collectors.toList());
     }
 
-    public DayDTO createDay(DayDTO dayDTO, String sessionToken) {
+    public DayDTO createDay(DayDTO dayDTO, String timezone, String sessionToken) {
+        // TODO - use timezone
+
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
-        // TODO - validate dayDTO: date must not exist
+        // TODO - validate dayDTO: date must not already exist
+
+        if (Objects.isNull(dayDTO.getActivities())) {
+            dayDTO.setActivities(new ArrayList<>());
+        }
+        if (Objects.isNull(dayDTO.getEmotions())) {
+            dayDTO.setEmotions(new ArrayList<>());
+        }
+        if (Objects.isNull(dayDTO.getPrompts())) {
+            dayDTO.setPrompts(new ArrayList<>());
+        }
 
         Day day = new Day(dayDTO, true);
         dayRepository.save(day);
@@ -91,7 +106,7 @@ public class DayService {
         return dayDTO;
     }
 
-    public DayDTO updateDay(String dayId, String eventType, DayEventDTO dayEvent, String sessionToken) {
+    public DayDTO updateDay(String dayId, String eventType, DayEventDTO dayEvent, String timezone, String sessionToken) {
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         // TODO - validate eventType
@@ -113,6 +128,7 @@ public class DayService {
                             .icon(dayEvent.getIcon())
                             .name(dayEvent.getName())
                             .startTime(dayEvent.getStartTime())
+                            .timezone(timezone)
                             .build();
                     day.getActivities().add(newActivityDTO);
                     LOGGER.info("Adding ACTIVITY to day");
@@ -123,6 +139,7 @@ public class DayService {
                             .emotionScore(dayEvent.getEmotionScore())
                             .endTime(dayEvent.getEndTime())
                             .startTime(dayEvent.getStartTime())
+                            .timezone(timezone)
                             .build();
                     day.getEmotions().add(newEmotionDTO);
                     LOGGER.info("Adding EMOTION to day");
@@ -132,6 +149,7 @@ public class DayService {
                             .question(dayEvent.getQuestion())
                             .selectedAnswer(dayEvent.getSelectedAnswer())
                             .startTime(dayEvent.getStartTime())
+                            .timezone(timezone)
                             .build();
                     day.getPrompts().add(newPromptDTO);
                     LOGGER.info("Adding PROMPT to day");

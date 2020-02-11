@@ -82,13 +82,13 @@ public final class Constants {
     public static String determineWeekStartLabel(LocalDate localDate) {
         String weekStartLabel = "";
 
-        if (localDate.getDayOfMonth() >= 1 && localDate.getDayOfMonth() <= 7) {
+        if (localDate.getDayOfMonth() <= 7) {
             weekStartLabel = "Week 1";
-        } else if (localDate.getDayOfMonth() >= 8 && localDate.getDayOfMonth() <= 14) {
+        } else if (localDate.getDayOfMonth() <= 14) {
             weekStartLabel = "Week 2";
-        } else if (localDate.getDayOfMonth() >= 15 && localDate.getDayOfMonth() <= 21) {
+        } else if (localDate.getDayOfMonth() <= 21) {
             weekStartLabel = "Week 3";
-        } else if (localDate.getDayOfMonth() >= 22 && localDate.getDayOfMonth() <= 28) {
+        } else if (localDate.getDayOfMonth() <= 28) {
             weekStartLabel = "Week 4";
         } else {
             weekStartLabel = "Week 5";
