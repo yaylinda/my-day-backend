@@ -3,6 +3,7 @@ package yay.linda.mydaybackend.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import yay.linda.mydaybackend.entity.Session;
 import yay.linda.mydaybackend.entity.User;
@@ -15,6 +16,8 @@ import yay.linda.mydaybackend.web.error.RegisterException;
 import yay.linda.mydaybackend.web.error.UsernamePasswordMismatchException;
 
 import java.util.Optional;
+
+import static yay.linda.mydaybackend.Constants.BCRYPT_LOG_ROUNDS;
 
 @Service
 public class UserService {
@@ -100,15 +103,18 @@ public class UserService {
     }
 
     private boolean verifyPassword(String username, String password) {
-        User user = userRepository.findByUsername(username).get();
-        // TODO - uncomment BCrypt later
-//        return BCrypt.checkpw(password, user.getPassword());
-        return password.equals(user.getPassword());
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() -> NotFoundException.usernameNotFound(username));
+        return BCrypt.checkpw(password, user.getPassword());
     }
 
     private void createUser(RegisterRequest registerRequest, Boolean isGuest) {
+        // TODO - do something with isGuest later
         LOGGER.info("Creating new User: {}", registerRequest);
-        User user = new User(registerRequest.getUsername(), registerRequest.getPassword());
+        User user = new User(
+                registerRequest.getUsername(),
+                BCrypt.hashpw(registerRequest.getPassword(), BCrypt.gensalt(BCRYPT_LOG_ROUNDS)));
         userRepository.save(user);
     }
 }

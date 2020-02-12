@@ -14,7 +14,7 @@ public class User {
     private String userId; // UUID used in database to track unique user. Used in Session.userId
     private String username; // Friendly display username
 
-    private String password;
+    private String password; // Bcrypt hash of plainText password
 
     private LocalDateTime joinedDate;
     private LocalDateTime lastActiveDate;

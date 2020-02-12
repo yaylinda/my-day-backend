@@ -53,11 +53,11 @@ public class DayService {
                 LOGGER.info("Latest Day date {} does not equal today's date {}. Catching up...",
                         optionalDay.get().getDate(), today.format(YEAR_MONTH_DAY_FORMATTER));
 
-                ZonedDateTime latest = ZonedDateTime.parse(optionalDay.get().getDate(), YEAR_MONTH_DAY_FORMATTER);
+                LocalDate latest = LocalDate.parse(optionalDay.get().getDate(), YEAR_MONTH_DAY_FORMATTER);
 
                 List<Day> daysToSave = new ArrayList<>();
 
-                while (latest.isBefore(today)) {
+                while (latest.isBefore(today.toLocalDate())) {
                     latest = latest.plusDays(1);
                     LOGGER.info("Saving placeholder Day for date={}", latest.format(YEAR_MONTH_DAY_FORMATTER));
                     daysToSave.add(new Day(latest.format(YEAR_MONTH_DAY_FORMATTER), username));
@@ -79,31 +79,6 @@ public class DayService {
         LOGGER.info("Found {} days for {}", days.size(), username);
 
         return days.stream().map(d -> new DayDTO(d, true)).collect(Collectors.toList());
-    }
-
-    public DayDTO createDay(DayDTO dayDTO, String timezone, String sessionToken) {
-        // TODO - use timezone
-
-        String username = sessionService.getUsernameFromSessionToken(sessionToken);
-
-        // TODO - validate dayDTO: date must not already exist
-
-        if (Objects.isNull(dayDTO.getActivities())) {
-            dayDTO.setActivities(new ArrayList<>());
-        }
-        if (Objects.isNull(dayDTO.getEmotions())) {
-            dayDTO.setEmotions(new ArrayList<>());
-        }
-        if (Objects.isNull(dayDTO.getPrompts())) {
-            dayDTO.setPrompts(new ArrayList<>());
-        }
-
-        Day day = new Day(dayDTO, true);
-        dayRepository.save(day);
-
-        LOGGER.info("Persisted DayEntity for {} with dayId={}, date={}", username, day.getDayId(), day.getDate());
-
-        return dayDTO;
     }
 
     public DayDTO updateDay(String dayId, String eventType, DayEventDTO dayEvent, String timezone, String sessionToken) {
@@ -164,4 +139,30 @@ public class DayService {
             throw new NotFoundException(String.format("Day with dayId=%s does not exist for user %s", dayId, username));
         }
     }
+
+    /* THIS METHOD IS NEVER USED */
+//    public DayDTO createDay(DayDTO dayDTO, String timezone, String sessionToken) {
+//        // TODO - use timezone
+//
+//        String username = sessionService.getUsernameFromSessionToken(sessionToken);
+//
+//        // TODO - validate dayDTO: date must not already exist
+//
+//        if (Objects.isNull(dayDTO.getActivities())) {
+//            dayDTO.setActivities(new ArrayList<>());
+//        }
+//        if (Objects.isNull(dayDTO.getEmotions())) {
+//            dayDTO.setEmotions(new ArrayList<>());
+//        }
+//        if (Objects.isNull(dayDTO.getPrompts())) {
+//            dayDTO.setPrompts(new ArrayList<>());
+//        }
+//
+//        Day day = new Day(dayDTO, true);
+//        dayRepository.save(day);
+//
+//        LOGGER.info("Persisted DayEntity for {} with dayId={}, date={}", username, day.getDayId(), day.getDate());
+//
+//        return dayDTO;
+//    }
 }

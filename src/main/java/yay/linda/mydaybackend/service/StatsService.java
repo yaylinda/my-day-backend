@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.time.format.TextStyle.SHORT;
 import static java.time.format.TextStyle.SHORT_STANDALONE;
 import static yay.linda.mydaybackend.Constants.COUNTS_KEY;
 import static yay.linda.mydaybackend.Constants.DAY_KEY;
@@ -166,7 +167,7 @@ public class StatsService {
         year.forEach(d -> {
             String monthLabel = LocalDate.parse(d.getDate())
                     .getMonth()
-                    .getDisplayName(SHORT_STANDALONE, Locale.ENGLISH);
+                    .getDisplayName(SHORT, Locale.ENGLISH);
 
             monthLabelToStartMapping.get(monthLabel)
                     .addAll(d.getEmotions()
@@ -280,7 +281,7 @@ public class StatsService {
 
         year.forEach(d -> d.getActivities().forEach(a -> {
             String monthLabel = LocalDate.parse(d.getDate(), YEAR_MONTH_DAY_FORMATTER).getMonth()
-                    .getDisplayName(SHORT_STANDALONE, Locale.ENGLISH);
+                    .getDisplayName(SHORT, Locale.ENGLISH);
             monthLabelToStartMapping.get(monthLabel).add(a.getName());
             uniqueActivities.add(a.getName());
         }));
