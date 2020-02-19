@@ -16,4 +16,10 @@ public class NotFoundException extends RuntimeException {
     public static NotFoundException gameNotFound(String gameId) {
         return new NotFoundException(String.format("Game with id='%s' does not exist.", gameId));
     }
+
+    public static NotFoundException catalogEventNotFound(String eventType, String catalogEventId) {
+        return new NotFoundException(String.format(
+                "Catalog of eventType='%s' with catalogEventId='%s' does not exist.",
+                eventType, catalogEventId));
+    }
 }

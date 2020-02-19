@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,7 +40,9 @@ public class DayEventCatalogController {
     @Autowired
     private DayEventCatalogService dayEventCatalogService;
 
-    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(
+            value = "",
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Retrieve Day Event Catalogs, given a valid Session-Token")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully retrieved Day Event Catalogs"),
@@ -53,7 +56,10 @@ public class DayEventCatalogController {
         return ResponseEntity.ok(dayEventCatalogService.getCatalogEvents(sessionToken));
     }
 
-    @PostMapping(value = "/{eventType}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(
+            value = "/{eventType}",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Add a Day Event to the Catalog, given a valid Session-Token")
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Successfully added a Day Event to the Catalog"),
@@ -67,8 +73,33 @@ public class DayEventCatalogController {
             @PathVariable(value = "eventType") String eventType,
             @ApiParam(value = "dayEventCatalog", required = true)
             @RequestBody DayEventCatalog dayEventCatalog) {
-        LOGGER.info("POST Day Event Catalog request: eventType={}, dayEventCatalog={}, sessionToken={}", eventType, dayEventCatalog, sessionToken);
+        LOGGER.info("POST Day Event Catalog request: eventType={}, dayEventCatalog={}, sessionToken={}",
+                eventType, dayEventCatalog, sessionToken);
         return ResponseEntity.ok(dayEventCatalogService.addCatalogEvent(eventType, dayEventCatalog, sessionToken));
+    }
+
+    @PutMapping(
+            value = "/{eventType}/{catalogEventId}",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Add a Day Event to the Catalog, given a valid Session-Token")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully updated a Day Event in the Catalog"),
+            @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
+            @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
+    })
+    public ResponseEntity<List<DayEventCatalog>> updateCatalog(
+            @ApiParam(value = "Session-Token", required = true)
+            @RequestHeader("Session-Token") String sessionToken,
+            @ApiParam(value = "eventType", required = true)
+            @PathVariable(value = "eventType") String eventType,
+            @ApiParam(value = "catalogEventId", required = true)
+            @PathVariable(value = "catalogEventId") String catalogEventId,
+            @ApiParam(value = "dayEventCatalog", required = true)
+            @RequestBody DayEventCatalog dayEventCatalog) {
+        LOGGER.info("POST Day Event Catalog request: eventType={}, catalogEventId={}, dayEventCatalog={}, sessionToken={}",
+                eventType, catalogEventId, dayEventCatalog, sessionToken);
+        return ResponseEntity.ok(dayEventCatalogService.updateCatalogEvent(eventType, catalogEventId, dayEventCatalog, sessionToken));
     }
 
     // TODO - endpoint to update day event

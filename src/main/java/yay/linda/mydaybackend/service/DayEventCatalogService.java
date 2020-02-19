@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import yay.linda.mydaybackend.entity.DayEventCatalog;
 import yay.linda.mydaybackend.model.EventType;
 import yay.linda.mydaybackend.repository.DayEventCatalogRepository;
+import yay.linda.mydaybackend.web.error.NotFoundException;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,6 +52,35 @@ public class DayEventCatalogService {
 
         dayEventCatalogRepository.save(dayEventCatalog);
         LOGGER.info("Persisted new DayEventCatalog: {}", dayEventCatalog);
+
+        List<DayEventCatalog> list = dayEventCatalogRepository.findByBelongsToAndType(username, dayEventCatalog.getType());
+
+        LOGGER.info("Returning {} DayEventCatalog of type {} for {}", list.size(), eventType, username);
+
+        return list;
+    }
+
+    public List<DayEventCatalog> updateCatalogEvent(String eventType, String catalogEventId, DayEventCatalog dayEventCatalog, String sessionToken) {
+        String username = sessionService.getUsernameFromSessionToken(sessionToken);
+
+        DayEventCatalog existing = dayEventCatalogRepository.findByCatalogEventId(catalogEventId)
+                .orElseThrow(() -> NotFoundException.catalogEventNotFound(eventType, catalogEventId));
+
+        switch (existing.getType()) {
+            case ACTIVITY:
+                // Can only update description of ACTIVITY catalog events
+                existing.setDescription(dayEventCatalog.getDescription());
+                break;
+            case PROMPT:
+                // Can only update answers of PROMPT catalog events
+                existing.setAnswers(dayEventCatalog.getAnswers());
+                break;
+            default:
+                LOGGER.warn("Attempting to update CatalogEvent of type={}, with id={}. Not allowed.", eventType, catalogEventId);
+                break;
+        }
+
+        dayEventCatalogRepository.save(existing);
 
         List<DayEventCatalog> list = dayEventCatalogRepository.findByBelongsToAndType(username, dayEventCatalog.getType());
 
