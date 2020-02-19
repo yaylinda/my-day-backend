@@ -81,8 +81,25 @@ public class DayEventCatalogService {
         }
 
         dayEventCatalogRepository.save(existing);
+        LOGGER.info("Persisted updated DayEventCatalog: {}", dayEventCatalog);
 
-        List<DayEventCatalog> list = dayEventCatalogRepository.findByBelongsToAndType(username, dayEventCatalog.getType());
+        List<DayEventCatalog> list = dayEventCatalogRepository.findByBelongsToAndType(username, existing.getType());
+
+        LOGGER.info("Returning {} DayEventCatalog of type {} for {}", list.size(), eventType, username);
+
+        return list;
+    }
+
+    public List<DayEventCatalog> deleteCatalogEvent(String eventType, String catalogEventId, String sessionToken) {
+        String username = sessionService.getUsernameFromSessionToken(sessionToken);
+
+        DayEventCatalog existing = dayEventCatalogRepository.findByCatalogEventId(catalogEventId)
+                .orElseThrow(() -> NotFoundException.catalogEventNotFound(eventType, catalogEventId));
+
+        dayEventCatalogRepository.deleteById(catalogEventId);
+        LOGGER.info("Deleted DayEventCatalog with id={}", catalogEventId);
+
+        List<DayEventCatalog> list = dayEventCatalogRepository.findByBelongsToAndType(username, existing.getType());
 
         LOGGER.info("Returning {} DayEventCatalog of type {} for {}", list.size(), eventType, username);
 

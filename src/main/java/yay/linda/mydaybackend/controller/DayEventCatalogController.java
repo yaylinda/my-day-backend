@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -102,5 +103,25 @@ public class DayEventCatalogController {
         return ResponseEntity.ok(dayEventCatalogService.updateCatalogEvent(eventType, catalogEventId, dayEventCatalog, sessionToken));
     }
 
-    // TODO - endpoint to update day event
+    @DeleteMapping(
+            value = "/{eventType}/{catalogEventId}",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Delete a Day Event from the Catalog, given a valid Session-Token")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully deleted a Day Event from the Catalog"),
+            @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
+            @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
+    })
+    public ResponseEntity<List<DayEventCatalog>> deleteCatalog(
+            @ApiParam(value = "Session-Token", required = true)
+            @RequestHeader("Session-Token") String sessionToken,
+            @ApiParam(value = "eventType", required = true)
+            @PathVariable(value = "eventType") String eventType,
+            @ApiParam(value = "catalogEventId", required = true)
+            @PathVariable(value = "catalogEventId") String catalogEventId) {
+        LOGGER.info("POST Day Event Catalog request: eventType={}, catalogEventId={}, sessionToken={}",
+                eventType, catalogEventId, sessionToken);
+        return ResponseEntity.ok(dayEventCatalogService.deleteCatalogEvent(eventType, catalogEventId, sessionToken));
+    }
 }
