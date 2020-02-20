@@ -9,6 +9,7 @@ import org.springframework.util.CollectionUtils;
 import yay.linda.mydaybackend.entity.Day;
 import yay.linda.mydaybackend.model.ChartData;
 import yay.linda.mydaybackend.model.DayEmotionDTO;
+import yay.linda.mydaybackend.model.DayEventDTO;
 import yay.linda.mydaybackend.model.EventType;
 import yay.linda.mydaybackend.model.StatsDTO;
 import yay.linda.mydaybackend.repository.DayRepository;
@@ -128,7 +129,7 @@ public class StatsService {
             monthDayLabelToValuesMapping.get(monthDay)
                     .addAll(d.getEmotions()
                             .stream()
-                            .map(DayEmotionDTO::getEmotionScore)
+                            .map(DayEventDTO::getEmotionScore)
                             .collect(Collectors.toList()));
         });
 
@@ -148,7 +149,7 @@ public class StatsService {
         month.forEach(d -> weekStartLabelToScoreMapping.get(determineWeekStartLabel(LocalDate.parse(d.getDate())))
                 .addAll(d.getEmotions()
                         .stream()
-                        .map(DayEmotionDTO::getEmotionScore)
+                        .map(DayEventDTO::getEmotionScore)
                         .collect(Collectors.toList())));
 
         aggregationService.aggregateScoreByLabel(weekStartLabelToScoreMapping, dayChartData);
@@ -172,7 +173,7 @@ public class StatsService {
             monthLabelToStartMapping.get(monthLabel)
                     .addAll(d.getEmotions()
                             .stream()
-                            .map(DayEmotionDTO::getEmotionScore)
+                            .map(DayEventDTO::getEmotionScore)
                             .collect(Collectors.toList()));
         });
 
@@ -380,7 +381,7 @@ public class StatsService {
 
             // avg day score
             double avgScore = d.getEmotions().stream()
-                    .map(DayEmotionDTO::getEmotionScore)
+                    .map(DayEventDTO::getEmotionScore)
                     .reduce((a, b) -> a + b)
                     .orElse(0) * 1.0 / d.getEmotions().size();
 

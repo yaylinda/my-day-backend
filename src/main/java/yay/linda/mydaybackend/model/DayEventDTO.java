@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public abstract class DayEventDTO {
     // TODO - try to consolidate and have this as superclass for the other 3 classes
+    private EventType type;
 
     // fields for DayActivityDTO
     private String name;

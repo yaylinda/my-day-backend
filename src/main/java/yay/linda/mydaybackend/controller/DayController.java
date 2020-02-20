@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -57,25 +58,11 @@ public class DayController {
         return ResponseEntity.ok(dayService.getDays(timezone, sessionToken));
     }
 
-//    @PostMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-//    @ApiOperation(value = "Successfully persisted a DayDTO for a User, given a valid Session-Token")
-//    @ApiResponses(value = {
-//            @ApiResponse(code = 201, message = "Successfully created Day"),
-//            @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
-//            @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
-//    })
-//    public ResponseEntity<DayDTO> createDay(
-//            @ApiParam(value = "dayDTO", required = true)
-//            @RequestBody DayDTO dayDTO,
-//            @ApiParam(value = "timezone", required = true, defaultValue = "UTC")
-//            @RequestHeader(value = "timezone", defaultValue = "UTC") String timezone,
-//            @ApiParam(value = "Session-Token", required = true)
-//            @RequestHeader("Session-Token") String sessionToken) {
-//        LOGGER.info("POST day request: dayDTO={}, timezone={}, sessionToken={}", dayDTO, timezone, sessionToken);
-//        return new ResponseEntity<>(dayService.createDay(dayDTO, timezone, sessionToken), HttpStatus.CREATED);
-//    }
 
-    @PutMapping(value = "/{dayId}/{eventType}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(
+            value = "/{dayId}/event/{eventType}",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Successfully added a DayEvent to a Day given a valid dayId and Session-Token")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully updated Day"),
@@ -83,7 +70,7 @@ public class DayController {
             @ApiResponse(code = 404, message = NOT_FOUND, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<DayDTO> updateDay(
+    public ResponseEntity<DayDTO> updateDayAddEvent(
             @ApiParam(value = "dayId", required = true)
             @PathVariable(value="dayId") String dayId,
             @ApiParam(value = "eventType", required = true)
@@ -94,9 +81,60 @@ public class DayController {
             @RequestHeader(value = "Timezone", defaultValue = "UTC") String timezone,
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
-
         LOGGER.info("PUT day request: dayId={}, eventType={}, dayEvent={}, timezone={}, sessionToken={}",
                 dayId, eventType, dayEvent, timezone, sessionToken);
         return new ResponseEntity<>(dayService.updateDayAddEvent(dayId, eventType, dayEvent, timezone, sessionToken), HttpStatus.OK);
+    }
+
+    @PutMapping(
+            value = "/{dayId}/events/{eventType}/dayEventId/{dayEventId}",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Successfully added a DayEvent to a Day given a valid dayId and Session-Token")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully updated Day"),
+            @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
+            @ApiResponse(code = 404, message = NOT_FOUND, response = ErrorDTO.class),
+            @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
+    })
+    public ResponseEntity<DayDTO> updateDayUpdateEvent(
+            @ApiParam(value = "dayId", required = true)
+            @PathVariable(value="dayId") String dayId,
+            @ApiParam(value = "eventType", required = true)
+            @PathVariable(value="eventType") String eventType,
+            @ApiParam(value = "dayEventId", required = true)
+            @PathVariable(value="dayEventId") String dayEventId,
+            @ApiParam(value = "dayEvent", required = true)
+            @RequestBody DayEventDTO dayEvent,
+            @ApiParam(value = "Session-Token", required = true)
+            @RequestHeader("Session-Token") String sessionToken) {
+        LOGGER.info("PUT day request: dayId={}, eventType={}, dayEvent={}, sessionToken={}",
+                dayId, eventType, dayEvent, sessionToken);
+        return new ResponseEntity<>(dayService.updateDayUpdateEvent(dayId, eventType, dayEventId, dayEvent, sessionToken), HttpStatus.OK);
+    }
+
+    @DeleteMapping(
+            value = "/{dayId}/events/{eventType}/dayEventId/{dayEventId}",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Successfully deleted a DayEvent from a Day given a valid dayId and Session-Token")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully deleted event from Day"),
+            @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
+            @ApiResponse(code = 404, message = NOT_FOUND, response = ErrorDTO.class),
+            @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
+    })
+    public ResponseEntity<DayDTO> updateDayDeleteEvent(
+            @ApiParam(value = "dayId", required = true)
+            @PathVariable(value="dayId") String dayId,
+            @ApiParam(value = "eventType", required = true)
+            @PathVariable(value="eventType") String eventType,
+            @ApiParam(value = "dayEventId", required = true)
+            @PathVariable(value="dayEventId") String dayEventId,
+            @ApiParam(value = "Session-Token", required = true)
+            @RequestHeader("Session-Token") String sessionToken) {
+        LOGGER.info("PUT day request: dayId={}, eventType={}, dayEventId={}, sessionToken={}",
+                dayId, eventType, dayEventId, sessionToken);
+        return new ResponseEntity<>(dayService.updateDayDeleteEvent(dayId, eventType, dayEventId, sessionToken), HttpStatus.OK);
     }
 }

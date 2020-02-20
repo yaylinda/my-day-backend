@@ -16,9 +16,9 @@ public class DayDTO {
     private String dayId; // UUID for a Day Entity
     private String date; // YYYY-MM-DD format
     private String username; // username that created the Day
-    private List<DayActivityDTO> activities;
-    private List<DayPromptDTO> prompts;
-    private List<DayEmotionDTO> emotions;
+    private List<DayEventDTO> activities;
+    private List<DayEventDTO> prompts;
+    private List<DayEventDTO> emotions;
 
     public DayDTO(Day day, boolean reverse) {
         this.dayId = day.getDayId();

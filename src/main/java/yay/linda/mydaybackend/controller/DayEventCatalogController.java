@@ -80,7 +80,7 @@ public class DayEventCatalogController {
     }
 
     @PutMapping(
-            value = "/{eventType}/{catalogEventId}",
+            value = "/{eventType}/catalogEventId/{catalogEventId}",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Add a Day Event to the Catalog, given a valid Session-Token")
@@ -104,7 +104,7 @@ public class DayEventCatalogController {
     }
 
     @DeleteMapping(
-            value = "/{eventType}/{catalogEventId}",
+            value = "/{eventType}/catalogEventId/{catalogEventId}",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Delete a Day Event from the Catalog, given a valid Session-Token")
