@@ -9,7 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DayEmotionDTO {
+public class DayEmotionDTO extends DayEventDTO {
+    // TODO - try to consolidate and extent DayEventDTO
+
+    private String dayEventId;
     private Integer emotionScore;
     private String description;
 

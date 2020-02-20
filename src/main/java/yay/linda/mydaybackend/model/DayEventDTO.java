@@ -9,7 +9,9 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DayEventDTO {
+public abstract class DayEventDTO {
+    // TODO - try to consolidate and have this as superclass for the other 3 classes
+
     // fields for DayActivityDTO
     private String name;
     private String color;
@@ -29,4 +31,5 @@ public class DayEventDTO {
 
     // fields for all three
     private String startTime;
+    private String dayEventId;
 }

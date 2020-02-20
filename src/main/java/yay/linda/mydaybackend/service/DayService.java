@@ -3,6 +3,7 @@ package yay.linda.mydaybackend.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.aggregation.BooleanOperators;
 import org.springframework.stereotype.Service;
 import yay.linda.mydaybackend.entity.Day;
 import yay.linda.mydaybackend.model.DayActivityDTO;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
@@ -81,88 +83,138 @@ public class DayService {
         return days.stream().map(d -> new DayDTO(d, true)).collect(Collectors.toList());
     }
 
-    public DayDTO updateDay(String dayId, String eventType, DayEventDTO dayEvent, String timezone, String sessionToken) {
+    public DayDTO updateDayAddEvent(String dayId, String eventType, DayEventDTO dayEvent, String timezone, String sessionToken) {
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
-        // TODO - validate eventType
+        Day day = dayRepository.findById(dayId).orElseThrow(() -> NotFoundException.dayNotFound(dayId, username));
 
-        Optional<Day> optionalDay = dayRepository.findById(dayId);
-
-        if (optionalDay.isPresent()) {
-            Day day = optionalDay.get();
-            EventType type = EventType.valueOf(eventType.toUpperCase());
-
-            LOGGER.info("Found day with dayId={}", dayId);
-
-            switch (type) {
-                case ACTIVITY:
-                    DayActivityDTO newActivityDTO = DayActivityDTO.builder()
-                            .color(dayEvent.getColor())
-                            .description(dayEvent.getDescription())
-                            .endTime(dayEvent.getEndTime())
-                            .icon(dayEvent.getIcon())
-                            .name(dayEvent.getName())
-                            .startTime(dayEvent.getStartTime())
-                            .timezone(timezone)
-                            .build();
-                    day.getActivities().add(newActivityDTO);
-                    LOGGER.info("Adding ACTIVITY to day");
-                    break;
-                case EMOTION:
-                    DayEmotionDTO newEmotionDTO = DayEmotionDTO.builder()
-                            .description(dayEvent.getDescription())
-                            .emotionScore(dayEvent.getEmotionScore())
-                            .endTime(dayEvent.getEndTime())
-                            .startTime(dayEvent.getStartTime())
-                            .timezone(timezone)
-                            .build();
-                    day.getEmotions().add(newEmotionDTO);
-                    LOGGER.info("Adding EMOTION to day");
-                    break;
-                case PROMPT:
-                    DayPromptDTO newPromptDTO = DayPromptDTO.builder()
-                            .question(dayEvent.getQuestion())
-                            .selectedAnswer(dayEvent.getSelectedAnswer())
-                            .startTime(dayEvent.getStartTime())
-                            .timezone(timezone)
-                            .build();
-                    day.getPrompts().add(newPromptDTO);
-                    LOGGER.info("Adding PROMPT to day");
-                    break;
-            }
-
-            dayRepository.save(day);
-            LOGGER.info("Updated DayEntity for {} with dayId={}, date={}", username, day.getDayId(), day.getDate());
-
-            return new DayDTO(day, true);
-        } else {
-            throw new NotFoundException(String.format("Day with dayId=%s does not exist for user %s", dayId, username));
+        switch (EventType.valueOf(eventType.toUpperCase())) {
+            case ACTIVITY:
+                DayActivityDTO newActivityDTO = DayActivityDTO.builder()
+                        .color(dayEvent.getColor())
+                        .description(dayEvent.getDescription())
+                        .endTime(dayEvent.getEndTime())
+                        .icon(dayEvent.getIcon())
+                        .name(dayEvent.getName())
+                        .startTime(dayEvent.getStartTime())
+                        .timezone(timezone)
+                        .dayEventId(UUID.randomUUID().toString())
+                        .build();
+                day.getActivities().add(newActivityDTO);
+                LOGGER.info("Adding ACTIVITY to day");
+                break;
+            case EMOTION:
+                DayEmotionDTO newEmotionDTO = DayEmotionDTO.builder()
+                        .description(dayEvent.getDescription())
+                        .emotionScore(dayEvent.getEmotionScore())
+                        .endTime(dayEvent.getEndTime())
+                        .startTime(dayEvent.getStartTime())
+                        .timezone(timezone)
+                        .dayEventId(UUID.randomUUID().toString())
+                        .build();
+                day.getEmotions().add(newEmotionDTO);
+                LOGGER.info("Adding EMOTION to day");
+                break;
+            case PROMPT:
+                DayPromptDTO newPromptDTO = DayPromptDTO.builder()
+                        .question(dayEvent.getQuestion())
+                        .selectedAnswer(dayEvent.getSelectedAnswer())
+                        .startTime(dayEvent.getStartTime())
+                        .timezone(timezone)
+                        .dayEventId(UUID.randomUUID().toString())
+                        .build();
+                day.getPrompts().add(newPromptDTO);
+                LOGGER.info("Adding PROMPT to day");
+                break;
         }
+
+        dayRepository.save(day);
+        LOGGER.info("Updated DayEntity and added/updated {} event, for {} with dayId={}, date={}",
+                eventType, username, day.getDayId(), day.getDate());
+
+        return new DayDTO(day, true);
     }
 
-    /* THIS METHOD IS NEVER USED */
-//    public DayDTO createDay(DayDTO dayDTO, String timezone, String sessionToken) {
-//        // TODO - use timezone
-//
-//        String username = sessionService.getUsernameFromSessionToken(sessionToken);
-//
-//        // TODO - validate dayDTO: date must not already exist
-//
-//        if (Objects.isNull(dayDTO.getActivities())) {
-//            dayDTO.setActivities(new ArrayList<>());
-//        }
-//        if (Objects.isNull(dayDTO.getEmotions())) {
-//            dayDTO.setEmotions(new ArrayList<>());
-//        }
-//        if (Objects.isNull(dayDTO.getPrompts())) {
-//            dayDTO.setPrompts(new ArrayList<>());
-//        }
-//
-//        Day day = new Day(dayDTO, true);
-//        dayRepository.save(day);
-//
-//        LOGGER.info("Persisted DayEntity for {} with dayId={}, date={}", username, day.getDayId(), day.getDate());
-//
-//        return dayDTO;
-//    }
+    public DayDTO updateDayUpdateEvent(String dayId, String eventType, String dayEventId, DayEventDTO dayEvent, String sessionToken) {
+        String username = sessionService.getUsernameFromSessionToken(sessionToken);
+
+        Day day = dayRepository.findById(dayId).orElseThrow(() -> NotFoundException.dayNotFound(dayId, username));
+
+        switch (EventType.valueOf(eventType.toUpperCase())) {
+            case ACTIVITY:
+                day.getActivities().forEach(a -> {
+                    if (a.getDayEventId().equalsIgnoreCase(dayEventId)) {
+                        // When updating an ACTIVITY, only time of activity can be changed
+                        a.setStartTime(dayEvent.getStartTime());
+                    }
+                });
+                break;
+            case EMOTION:
+                day.getEmotions().forEach(e -> {
+                    if (e.getDayEventId().equalsIgnoreCase(dayEventId)) {
+                        // When updating an EMOTION, only time and score can be changed
+                        e.setStartTime(dayEvent.getStartTime());
+                        e.setEmotionScore(dayEvent.getEmotionScore());
+                    }
+                });
+                break;
+            case PROMPT:
+                day.getPrompts().forEach(p -> {
+                    if (p.getDayEventId().equalsIgnoreCase(dayEventId)) {
+                        p.setStartTime(dayEvent.getStartTime());
+                        p.setSelectedAnswer(dayEvent.getSelectedAnswer());
+                    }
+                });
+                break;
+        }
+
+        dayRepository.save(day);
+        LOGGER.info("Updated DayEntity and added/updated {} event, for {} with dayId={}, date={}",
+                eventType, username, day.getDayId(), day.getDate());
+
+        return new DayDTO(day, true);
+    }
+
+    public DayDTO updateDayDeleteEvent(String dayId, String eventType, String dayEventId, String sessionToken) {
+        String username = sessionService.getUsernameFromSessionToken(sessionToken);
+
+        Day day = dayRepository.findById(dayId).orElseThrow(() -> NotFoundException.dayNotFound(dayId, username));
+
+        int index;
+
+        switch (EventType.valueOf(eventType.toUpperCase())) {
+            case ACTIVITY:
+                index = findDayEventIndexById(dayEventId, day.getActivities());
+                if (index > -1) {
+                    day.getActivities().remove(index);
+                }
+                break;
+            case EMOTION:
+                index = findDayEventIndexById(dayEventId, day.getEmotions());
+                if (index > -1) {
+                    day.getEmotions().remove(index);
+                }
+                break;
+            case PROMPT:
+                index = findDayEventIndexById(dayEventId, day.getPrompts());
+                if (index > -1) {
+                    day.getPrompts().remove(index);
+                }
+                break;
+        }
+
+        return new DayDTO(day, true);
+    }
+
+    private int findDayEventIndexById(String dayEventId, List<? extends DayEventDTO> dayEvents) {
+        int index = -1;
+        for (int i = 0; i < dayEvents.size(); i++) {
+            DayEventDTO dayEvent = dayEvents.get(i);
+            if (dayEvent.getDayEventId().equalsIgnoreCase(dayEventId)) {
+                index = i;
+                break;
+            }
+        }
+        return index;
+    }
 }

@@ -9,7 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DayPromptDTO {
+public class DayPromptDTO extends DayEventDTO {
+    // TODO - try to consolidate and extent DayEventDTO
+
+    private String dayEventId;
     private String question;
     private String selectedAnswer;
 
