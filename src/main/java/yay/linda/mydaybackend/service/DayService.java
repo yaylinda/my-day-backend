@@ -3,14 +3,10 @@ package yay.linda.mydaybackend.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.aggregation.BooleanOperators;
 import org.springframework.stereotype.Service;
 import yay.linda.mydaybackend.entity.Day;
-import yay.linda.mydaybackend.model.DayActivityDTO;
 import yay.linda.mydaybackend.model.DayDTO;
-import yay.linda.mydaybackend.model.DayEmotionDTO;
 import yay.linda.mydaybackend.model.DayEventDTO;
-import yay.linda.mydaybackend.model.DayPromptDTO;
 import yay.linda.mydaybackend.model.EventType;
 import yay.linda.mydaybackend.repository.DayRepository;
 import yay.linda.mydaybackend.web.error.NotFoundException;
@@ -20,12 +16,14 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
+import static yay.linda.mydaybackend.model.EventType.ACTIVITY;
+import static yay.linda.mydaybackend.model.EventType.EMOTION;
+import static yay.linda.mydaybackend.model.EventType.PROMPT;
 
 @Service
 public class DayService {
@@ -90,7 +88,8 @@ public class DayService {
 
         switch (EventType.valueOf(eventType.toUpperCase())) {
             case ACTIVITY:
-                DayActivityDTO newActivityDTO = DayActivityDTO.builder()
+                DayEventDTO newActivityDTO = DayEventDTO.builder()
+                        .type(ACTIVITY)
                         .color(dayEvent.getColor())
                         .description(dayEvent.getDescription())
                         .endTime(dayEvent.getEndTime())
@@ -104,7 +103,8 @@ public class DayService {
                 LOGGER.info("Adding ACTIVITY to day");
                 break;
             case EMOTION:
-                DayEmotionDTO newEmotionDTO = DayEmotionDTO.builder()
+                DayEventDTO newEmotionDTO = DayEventDTO.builder()
+                        .type(EMOTION)
                         .description(dayEvent.getDescription())
                         .emotionScore(dayEvent.getEmotionScore())
                         .endTime(dayEvent.getEndTime())
@@ -116,7 +116,8 @@ public class DayService {
                 LOGGER.info("Adding EMOTION to day");
                 break;
             case PROMPT:
-                DayPromptDTO newPromptDTO = DayPromptDTO.builder()
+                DayEventDTO newPromptDTO = DayEventDTO.builder()
+                        .type(PROMPT)
                         .question(dayEvent.getQuestion())
                         .selectedAnswer(dayEvent.getSelectedAnswer())
                         .startTime(dayEvent.getStartTime())

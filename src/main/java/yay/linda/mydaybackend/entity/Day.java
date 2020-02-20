@@ -4,11 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import yay.linda.mydaybackend.model.DayActivityDTO;
 import yay.linda.mydaybackend.model.DayDTO;
-import yay.linda.mydaybackend.model.DayEmotionDTO;
 import yay.linda.mydaybackend.model.DayEventDTO;
-import yay.linda.mydaybackend.model.DayPromptDTO;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,7 @@
 package yay.linda.mydaybackend.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,7 +10,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public abstract class DayEventDTO {
+@Builder
+public class DayEventDTO {
     // TODO - try to consolidate and have this as superclass for the other 3 classes
     private EventType type;
 
@@ -33,4 +35,5 @@ public abstract class DayEventDTO {
     // fields for all three
     private String startTime;
     private String dayEventId;
+    private String timezone;
 }

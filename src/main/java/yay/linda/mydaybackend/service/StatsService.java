@@ -1,6 +1,5 @@
 package yay.linda.mydaybackend.service;
 
-import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import yay.linda.mydaybackend.entity.Day;
 import yay.linda.mydaybackend.model.ChartData;
-import yay.linda.mydaybackend.model.DayEmotionDTO;
 import yay.linda.mydaybackend.model.DayEventDTO;
 import yay.linda.mydaybackend.model.EventType;
 import yay.linda.mydaybackend.model.StatsDTO;
@@ -26,7 +24,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.time.format.TextStyle.SHORT;
-import static java.time.format.TextStyle.SHORT_STANDALONE;
 import static yay.linda.mydaybackend.Constants.COUNTS_KEY;
 import static yay.linda.mydaybackend.Constants.DAY_KEY;
 import static yay.linda.mydaybackend.Constants.HOUR_ORDER;
