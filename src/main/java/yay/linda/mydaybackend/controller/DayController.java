@@ -60,7 +60,7 @@ public class DayController {
 
 
     @PutMapping(
-            value = "/{dayId}/event/{eventType}",
+            value = "/{dayId}/events/{eventType}",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     @ApiOperation(value = "Successfully added a DayEvent to a Day given a valid dayId and Session-Token")
