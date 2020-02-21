@@ -20,18 +20,15 @@ public class DayDTO {
     private List<DayEventDTO> prompts;
     private List<DayEventDTO> emotions;
 
-    public DayDTO(Day day, boolean reverse) {
+    public DayDTO(Day day) {
         this.dayId = day.getDayId();
         this.date = day.getDate();
         this.username = day.getUsername();
         this.activities = day.getActivities();
         this.prompts = day.getPrompts();
         this.emotions = day.getEmotions();
-
-        if (reverse) {
-            Collections.reverse(this.activities);
-            Collections.reverse(this.prompts);
-            Collections.reverse(this.emotions);
-        }
+        Collections.sort(this.activities);
+        Collections.sort(this.prompts);
+        Collections.sort(this.emotions);
     }
 }

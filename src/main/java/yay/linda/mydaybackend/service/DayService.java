@@ -78,7 +78,7 @@ public class DayService {
 
         LOGGER.info("Found {} days for {}", days.size(), username);
 
-        return days.stream().map(d -> new DayDTO(d, true)).collect(Collectors.toList());
+        return days.stream().map(DayDTO::new).collect(Collectors.toList());
     }
 
     public DayDTO updateDayAddEvent(String dayId, String eventType, DayEventDTO dayEvent, String timezone, String sessionToken) {
@@ -133,7 +133,7 @@ public class DayService {
         LOGGER.info("Updated DayEntity and added/updated {} event, for {} with dayId={}, date={}",
                 eventType, username, day.getDayId(), day.getDate());
 
-        return new DayDTO(day, true);
+        return new DayDTO(day);
     }
 
     public DayDTO updateDayUpdateEvent(String dayId, String eventType, String dayEventId, DayEventDTO dayEvent, String sessionToken) {
@@ -173,7 +173,7 @@ public class DayService {
         LOGGER.info("Updated DayEntity and added/updated {} event, for {} with dayId={}, date={}",
                 eventType, username, day.getDayId(), day.getDate());
 
-        return new DayDTO(day, true);
+        return new DayDTO(day);
     }
 
     public DayDTO updateDayDeleteEvent(String dayId, String eventType, String dayEventId, String sessionToken) {
@@ -204,7 +204,7 @@ public class DayService {
                 break;
         }
 
-        return new DayDTO(day, true);
+        return new DayDTO(day);
     }
 
     private int findDayEventIndexById(String dayEventId, List<? extends DayEventDTO> dayEvents) {

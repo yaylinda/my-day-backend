@@ -14,6 +14,8 @@ public final class Constants {
 
     public static final DateTimeFormatter MONTH_DAY_FORMATTER = DateTimeFormatter.ofPattern("MM-dd");
 
+    public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("hh:mm a");
+
     public static final int BCRYPT_LOG_ROUNDS = 10;
 
     public static final List<String> HOUR_ORDER = Arrays.asList(
