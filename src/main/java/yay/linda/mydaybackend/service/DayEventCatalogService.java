@@ -69,6 +69,7 @@ public class DayEventCatalogService {
         switch (existing.getType()) {
             case ACTIVITY:
                 // Can only update description of ACTIVITY catalog events
+                existing.setIcon(dayEventCatalog.getIcon());
                 existing.setDescription(dayEventCatalog.getDescription());
                 break;
             case PROMPT:
