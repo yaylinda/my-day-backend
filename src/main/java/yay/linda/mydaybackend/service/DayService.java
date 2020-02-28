@@ -204,6 +204,8 @@ public class DayService {
                 break;
         }
 
+        dayRepository.save(day);
+
         return new DayDTO(day);
     }
 

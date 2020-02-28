@@ -133,7 +133,7 @@ public class DayController {
             @PathVariable(value="dayEventId") String dayEventId,
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
-        LOGGER.info("PUT day request: dayId={}, eventType={}, dayEventId={}, sessionToken={}",
+        LOGGER.info("DELETE day request: dayId={}, eventType={}, dayEventId={}, sessionToken={}",
                 dayId, eventType, dayEventId, sessionToken);
         return new ResponseEntity<>(dayService.updateDayDeleteEvent(dayId, eventType, dayEventId, sessionToken), HttpStatus.OK);
     }
