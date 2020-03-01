@@ -16,31 +16,28 @@ import static yay.linda.mydaybackend.Constants.TIME_FORMATTER;
 @Builder
 public class DayEventDTO implements Comparable<DayEventDTO> {
 
-    // TODO - try to consolidate and have this as superclass for the other 3 classes
-    private EventType type;
+    // fields for DayEmotionDTO
+    private Integer emotionScore;
 
     // fields for DayActivityDTO
     private String name;
     private String color;
-    private String icon;
-
-    // fields for DayEmotionDTO
-    private Integer emotionScore;
-
-    // fields for both
     private String description;
-    private String endTime;
+    private String icon;
 
     // fields for DayPromptDTO
     private String question;
-    private List<String> answers;
     private String selectedAnswer;
+    private String selectedAnswerCatalogEventId;
 
     // fields for all three
-    private String catalogEventId;
+    private EventType type;
     private String startTime; // TODO: we are HEAVILY assuming that the format is `hh:mm a`. Maybe make this LocalTime
     private String dayEventId;
     private String timezone;
+
+    // fields for DayEmotionDTO and DayPromptDTO
+    private String catalogEventId;
 
     @Override
     public int compareTo(DayEventDTO o) {

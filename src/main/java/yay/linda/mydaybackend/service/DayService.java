@@ -22,7 +22,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static yay.linda.mydaybackend.Constants.YEAR_MONTH_DAY_FORMATTER;
+import static yay.linda.mydaybackend.model.CountUpdateType.DECREMENT;
+import static yay.linda.mydaybackend.model.CountUpdateType.INCREMENT;
 import static yay.linda.mydaybackend.model.EventType.ACTIVITY;
+import static yay.linda.mydaybackend.model.EventType.ANSWER;
 import static yay.linda.mydaybackend.model.EventType.EMOTION;
 import static yay.linda.mydaybackend.model.EventType.PROMPT;
 
@@ -91,12 +94,23 @@ public class DayService {
         Day day = dayRepository.findById(dayId).orElseThrow(() -> NotFoundException.dayNotFound(dayId, username));
 
         switch (EventType.valueOf(eventType.toUpperCase())) {
+            case EMOTION:
+                DayEventDTO newEmotionDTO = DayEventDTO.builder()
+                        .type(EMOTION)
+                        .description(dayEvent.getDescription())
+                        .emotionScore(dayEvent.getEmotionScore())
+                        .startTime(dayEvent.getStartTime())
+                        .timezone(timezone)
+                        .dayEventId(UUID.randomUUID().toString())
+                        .build();
+                day.getEmotions().add(newEmotionDTO);
+                LOGGER.info("Adding EMOTION to day");
+                break;
             case ACTIVITY:
                 DayEventDTO newActivityDTO = DayEventDTO.builder()
                         .type(ACTIVITY)
                         .color(dayEvent.getColor())
                         .description(dayEvent.getDescription())
-                        .endTime(dayEvent.getEndTime())
                         .icon(dayEvent.getIcon())
                         .name(dayEvent.getName())
                         .startTime(dayEvent.getStartTime())
@@ -105,20 +119,7 @@ public class DayService {
                         .build();
                 day.getActivities().add(newActivityDTO);
                 LOGGER.info("Adding ACTIVITY to day");
-                catalogEventService.updateCount(dayEvent.getCatalogEventId(), CountUpdateType.INCREMENT);
-                break;
-            case EMOTION:
-                DayEventDTO newEmotionDTO = DayEventDTO.builder()
-                        .type(EMOTION)
-                        .description(dayEvent.getDescription())
-                        .emotionScore(dayEvent.getEmotionScore())
-                        .endTime(dayEvent.getEndTime())
-                        .startTime(dayEvent.getStartTime())
-                        .timezone(timezone)
-                        .dayEventId(UUID.randomUUID().toString())
-                        .build();
-                day.getEmotions().add(newEmotionDTO);
-                LOGGER.info("Adding EMOTION to day");
+                catalogEventService.updateCount(dayEvent.getCatalogEventId(), newActivityDTO.getType(), INCREMENT);
                 break;
             case PROMPT:
                 DayEventDTO newPromptDTO = DayEventDTO.builder()
@@ -131,11 +132,12 @@ public class DayService {
                         .build();
                 day.getPrompts().add(newPromptDTO);
                 LOGGER.info("Adding PROMPT to day");
-                catalogEventService.updateCount(dayEvent.getCatalogEventId(), CountUpdateType.INCREMENT);
+                catalogEventService.updateCount(dayEvent.getCatalogEventId(), newPromptDTO.getType(), INCREMENT);
                 break;
         }
 
         dayRepository.save(day);
+
         LOGGER.info("Updated DayEntity and added/updated {} event, for {} with dayId={}, date={}",
                 eventType, username, day.getDayId(), day.getDate());
 
@@ -148,14 +150,6 @@ public class DayService {
         Day day = dayRepository.findById(dayId).orElseThrow(() -> NotFoundException.dayNotFound(dayId, username));
 
         switch (EventType.valueOf(eventType.toUpperCase())) {
-            case ACTIVITY:
-                day.getActivities().forEach(a -> {
-                    if (a.getDayEventId().equalsIgnoreCase(dayEventId)) {
-                        // When updating an ACTIVITY, only time of activity can be changed
-                        a.setStartTime(dayEvent.getStartTime());
-                    }
-                });
-                break;
             case EMOTION:
                 day.getEmotions().forEach(e -> {
                     if (e.getDayEventId().equalsIgnoreCase(dayEventId)) {
@@ -165,21 +159,30 @@ public class DayService {
                     }
                 });
                 break;
+            case ACTIVITY:
+                day.getActivities().forEach(a -> {
+                    if (a.getDayEventId().equalsIgnoreCase(dayEventId)) {
+                        // When updating an ACTIVITY, only time of activity can be changed
+                        a.setStartTime(dayEvent.getStartTime());
+                    }
+                });
+                break;
             case PROMPT:
                 day.getPrompts().forEach(p -> {
                     if (p.getDayEventId().equalsIgnoreCase(dayEventId)) {
+                        catalogEventService.updateCount(p.getSelectedAnswerCatalogEventId(), ANSWER, DECREMENT);
                         // When updating PROMPT, only time and selected answer can be changed
-                        String oldSelectedAnswer = p.getSelectedAnswer();
                         p.setStartTime(dayEvent.getStartTime());
                         p.setSelectedAnswer(dayEvent.getSelectedAnswer());
-                        catalogEventService.updateAnswersCount(dayEvent.getCatalogEventId(), oldSelectedAnswer, CountUpdateType.DECREMENT);
-                        catalogEventService.updateAnswersCount(dayEvent.getCatalogEventId(), dayEvent.getSelectedAnswer(), CountUpdateType.INCREMENT);
+                        p.setSelectedAnswerCatalogEventId(dayEvent.getSelectedAnswerCatalogEventId());
+                        catalogEventService.updateCount(dayEvent.getSelectedAnswerCatalogEventId(), ANSWER, INCREMENT);
                     }
                 });
                 break;
         }
 
         dayRepository.save(day);
+
         LOGGER.info("Updated DayEntity and added/updated {} event, for {} with dayId={}, date={}",
                 eventType, username, day.getDayId(), day.getDate());
 
@@ -199,7 +202,7 @@ public class DayService {
                 if (index > -1) {
                     String catalogEventId = day.getActivities().get(index).getCatalogEventId();
                     day.getActivities().remove(index);
-                    catalogEventService.updateCount(catalogEventId, CountUpdateType.DECREMENT);
+                    catalogEventService.updateCount(catalogEventId, ACTIVITY, DECREMENT);
                 }
                 break;
             case EMOTION:
@@ -212,10 +215,10 @@ public class DayService {
                 index = findDayEventIndexById(dayEventId, day.getPrompts());
                 if (index > -1) {
                     String catalogEventId = day.getPrompts().get(index).getCatalogEventId();
-                    String selectedAnswer = day.getPrompts().get(index).getSelectedAnswer();
+                    String selectedAnswerId = day.getPrompts().get(index).getSelectedAnswerCatalogEventId();
                     day.getPrompts().remove(index);
-                    catalogEventService.updateCount(catalogEventId, CountUpdateType.DECREMENT);
-                    catalogEventService.updateAnswersCount(catalogEventId, selectedAnswer, CountUpdateType.DECREMENT);
+                    catalogEventService.updateCount(catalogEventId, PROMPT, DECREMENT);
+                    catalogEventService.updateCount(selectedAnswerId, ANSWER, DECREMENT);
                 }
                 break;
         }
