@@ -1,25 +1,29 @@
 package yay.linda.mydaybackend.service;
 
-import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import yay.linda.mydaybackend.entity.CatalogEvent;
+import yay.linda.mydaybackend.model.AnswerCatalogEventDTO;
 import yay.linda.mydaybackend.model.CatalogEventDTO;
+import yay.linda.mydaybackend.model.CountUpdateType;
 import yay.linda.mydaybackend.model.EventType;
 import yay.linda.mydaybackend.repository.CatalogEventRepository;
 import yay.linda.mydaybackend.repository.DayRepository;
 import yay.linda.mydaybackend.web.error.NotFoundException;
 
-import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static yay.linda.mydaybackend.model.EventType.ACTIVITY;
+import static yay.linda.mydaybackend.model.EventType.ANSWER;
+import static yay.linda.mydaybackend.model.EventType.PROMPT;
 
 @Service
 public class CatalogEventService {
@@ -39,15 +43,25 @@ public class CatalogEventService {
 
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
+        // Collect all user's CatalogEvents by Type
+        Map<EventType, List<CatalogEvent>> catalogEventsByType = catalogEventRepository.findByBelongsTo(username).stream()
+                .collect(Collectors.groupingBy(CatalogEvent::getType));
+
+        // Group all user's CatalogEvent Answers by parent question catalogEventId
+        Map<String, List<CatalogEvent>> promptIdToAnswersMap = catalogEventsByType.get(ANSWER).stream()
+                .collect(Collectors.groupingBy(CatalogEvent::getParentQuestionCatalogEventId));
+
         Map<String, List<CatalogEventDTO>> catalogs = new HashMap<>();
 
-        Arrays.stream(EventType.values()).forEach(t -> {
-            List<CatalogEvent> list = catalogEventRepository.findByBelongsToAndType(username, t);
-            LOGGER.info("Found {} CatalogEvent for {} of type {}", list.size(), username, t);
-            catalogs.put(t.name(), list.stream()
-                    .map(this::convertAndGetCounts)
-                    .collect(Collectors.toList()));
-        });
+        catalogs.put(
+                ACTIVITY.name(),
+                convertActivityCatalogEvents(catalogEventsByType.get(ACTIVITY))
+        );
+
+        catalogs.put(
+                PROMPT.name(),
+                convertPromptCatalogEvents(catalogEventsByType.get(PROMPT), catalogEventsByType.get(ANSWER))
+        );
 
         return catalogs;
     }
@@ -56,21 +70,35 @@ public class CatalogEventService {
 
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
-        // TODO - validate eventType, and fields of dayEventCatalogDTO
         catalogEventDTO.setCatalogEventId(UUID.randomUUID().toString());
         catalogEventDTO.setType(EventType.valueOf(eventType));
         catalogEventDTO.setBelongsTo(username);
+        catalogEventDTO.setCount(0);
 
-        catalogEventRepository.save(new CatalogEvent(catalogEventDTO));
-        LOGGER.info("Persisted new CatalogEvent: {}", catalogEventDTO);
+        switch (catalogEventDTO.getType()) {
+            case ACTIVITY:
+                catalogEventRepository.save(CatalogEvent.createForActivity(catalogEventDTO));
+                LOGGER.info("Persisted new ACTIVITY CatalogEvent");
+                break;
+            case PROMPT:
+                List<CatalogEvent> toSave = new ArrayList<>();
+                toSave.add(CatalogEvent.createForPrompt(catalogEventDTO));
+                catalogEventDTO.getAnswers().forEach(a -> {
+                    a.setCatalogEventId(UUID.randomUUID().toString());
+                    a.setBelongsTo(username);
+                    a.setCount(0);
+                    a.setParentQuestionCatalogEventId(catalogEventDTO.getCatalogEventId());
+                    toSave.add(CatalogEvent.createForAnswer(a));
+                });
+                catalogEventRepository.saveAll(toSave);
+                LOGGER.info("Persisted new PROMPT CatalogEvent, with {} ANSWERS", catalogEventDTO.getAnswers().size());
+                break;
+            default:
+                LOGGER.warn("Unsupported EventType: {}, for method addCatalogEvent", eventType);
+                break;
+        }
 
-        List<CatalogEvent> list = catalogEventRepository.findByBelongsToAndType(username, catalogEventDTO.getType());
-
-        LOGGER.info("Returning {} CatalogEvent of type {} for {}", list.size(), eventType, username);
-
-        return list.stream()
-                .map(this::convertAndGetCounts)
-                .collect(Collectors.toList());
+        return returnCatalogEventsForUser(username, catalogEventDTO.getType());
     }
 
     public List<CatalogEventDTO> updateCatalogEvent(String eventType, String catalogEventId, CatalogEventDTO catalogEventDTO, String sessionToken) {
@@ -84,26 +112,30 @@ public class CatalogEventService {
                 // Can only update description of ACTIVITY catalog events
                 existing.setIcon(catalogEventDTO.getIcon());
                 existing.setDescription(catalogEventDTO.getDescription());
+                catalogEventRepository.save(existing);
+                LOGGER.info("Persisted updates for ACTIVITY CatalogEvent");
                 break;
             case PROMPT:
-                // Can only update answers of PROMPT catalog events
-                existing.setAnswers(catalogEventDTO.getAnswers());
+                // Can only update answers related to PROMPT catalog events
+                List<CatalogEvent> toSave = new ArrayList<>();
+                catalogEventDTO.getAnswers().forEach(a -> {
+                    if (StringUtils.isEmpty(a.getCatalogEventId())) {
+                        a.setCatalogEventId(UUID.randomUUID().toString());
+                        a.setBelongsTo(username);
+                        a.setCount(0);
+                        a.setParentQuestionCatalogEventId(catalogEventDTO.getCatalogEventId());
+                    }
+                    toSave.add(CatalogEvent.createForAnswer(a));
+                });
+                catalogEventRepository.saveAll(toSave);
+                LOGGER.info("Persisted updates for PROMPT CatalogEvent, with {} ANSWERS", catalogEventDTO.getAnswers().size());
                 break;
             default:
-                LOGGER.warn("Attempting to update CatalogEvent of type={}, with id={}. Not allowed.", eventType, catalogEventId);
+                LOGGER.warn("Unsupported EventType: {}, for method updateCatalogEvent", eventType);
                 break;
         }
 
-        catalogEventRepository.save(existing);
-        LOGGER.info("Persisted updated CatalogEvent: {}", catalogEventDTO);
-
-        List<CatalogEvent> list = catalogEventRepository.findByBelongsToAndType(username, existing.getType());
-
-        LOGGER.info("Returning {} CatalogEvent of type {} for {}", list.size(), eventType, username);
-
-        return list.stream()
-                .map(this::convertAndGetCounts)
-                .collect(Collectors.toList());
+        return returnCatalogEventsForUser(username, existing.getType());
     }
 
     public List<CatalogEventDTO> deleteCatalogEvent(String eventType, String catalogEventId, String sessionToken) {
@@ -119,28 +151,93 @@ public class CatalogEventService {
 
         LOGGER.info("Returning {} CatalogEvent of type {} for {}", list.size(), eventType, username);
 
-        return list.stream()
-                .map(this::convertAndGetCounts)
+        return returnCatalogEventsForUser(username, existing.getType());
+    }
+
+    void updateCount(String catalogEventId, EventType eventType, CountUpdateType countUpdateType) {
+        CatalogEvent existing = catalogEventRepository.findByCatalogEventId(catalogEventId)
+                .orElseThrow(() -> NotFoundException.catalogEventNotFound(eventType.name(), catalogEventId));
+
+        LOGGER.info("{} count for catalogEventId={}", countUpdateType, catalogEventId);
+
+        existing.setCount(existing.getCount() + countUpdateType.getAmount());
+        catalogEventRepository.save(existing);
+
+        LOGGER.info("Count is now {}", existing.getCount());
+    }
+
+    private List<CatalogEventDTO> returnCatalogEventsForUser(String username, EventType type) {
+        switch (type) {
+            case ACTIVITY:
+                return convertActivityCatalogEvents(catalogEventRepository.findByBelongsToAndType(username, ACTIVITY));
+            case PROMPT:
+                return convertPromptCatalogEvents(
+                        catalogEventRepository.findByBelongsToAndType(username, PROMPT),
+                        catalogEventRepository.findByBelongsToAndType(username, ANSWER)
+                );
+            default:
+                LOGGER.warn("Unsupported EventType: {}, for method returnCatalogEventsForUser()", type);
+                return new ArrayList<>();
+        }
+    }
+
+    private List<CatalogEventDTO> convertActivityCatalogEvents(List<CatalogEvent> activities) {
+        return activities.stream()
+                .map(CatalogEventDTO::createForActivity)
                 .collect(Collectors.toList());
     }
 
-    private CatalogEventDTO convertAndGetCounts(CatalogEvent catalogEvent) {
-        return new CatalogEventDTO(catalogEvent, getActivityCounts(catalogEvent), getAnswersCounts(catalogEvent));
+    private List<CatalogEventDTO> convertPromptCatalogEvents(List<CatalogEvent> prompts, List<CatalogEvent> answers) {
+        return prompts.stream()
+                .map(p -> CatalogEventDTO.createForPrompt(p, convertAnswerCatalogEvents(answers)))
+                .collect(Collectors.toList());
     }
 
-    private Integer getActivityCounts(CatalogEvent catalogEvent) {
-        if (!EventType.ACTIVITY.equals(catalogEvent.getType())) {
-            return null;
-        }
-
-        return 0; // TODO - calculation
+    private List<AnswerCatalogEventDTO> convertAnswerCatalogEvents(List<CatalogEvent> answers) {
+        return answers.stream()
+                .map(AnswerCatalogEventDTO::new)
+                .collect(Collectors.toList());
     }
 
-    private List<Integer> getAnswersCounts(CatalogEvent catalogEvent) {
-        if (!EventType.PROMPT.equals(catalogEvent.getType())) {
-            return null;
-        }
+    /*
+    // These methods are not used anymore, since we are storing the counts / usage of catalog events
 
-        return new ArrayList<>(); // TODO - calculation
+    private Map<String, Integer> calculateCountsByActivity(String username, List<String> activities) {
+        Map<String, Integer> countsByActivity = activities.stream()
+                .collect(Collectors.toMap(
+                        a -> a,
+                        a -> 0
+                ));
+
+        dayRepository.findByUsername(username)
+                .forEach(d -> d.getActivities()
+                        .forEach(a -> countsByActivity.computeIfPresent(a.getName(), (k, v) -> v += 1)));
+
+        return countsByActivity;
     }
+
+    private Map<String, Map<String, Integer>> calculateCountsByPrompt(String username, Map<String, List<String>> promptsAndAnswers) {
+        Map<String, Map<String, Integer>> countsByPrompt = promptsAndAnswers.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> e.getValue().stream()
+                                .collect(Collectors.toMap(
+                                        a -> a,
+                                        a -> 0
+                                ))
+                ));
+
+        dayRepository.findByUsername(username)
+                .forEach(d -> d.getPrompts()
+                        .forEach(p -> {
+                            if (countsByPrompt.containsKey(p.getQuestion())) {
+                                countsByPrompt.get(p.getQuestion())
+                                        .computeIfPresent(p.getSelectedAnswer(), (k, v) -> v += 1);
+                            }
+                        })
+                );
+
+        return countsByPrompt;
+    }
+    */
 }

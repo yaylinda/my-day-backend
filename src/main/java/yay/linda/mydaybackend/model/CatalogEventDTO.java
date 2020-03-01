@@ -5,39 +5,47 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import yay.linda.mydaybackend.entity.CatalogEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CatalogEventDTO {
+
     private String catalogEventId;
     private EventType type; // ACTIVITY or PROMPT
     private String belongsTo;
+    private Integer count; // for stats
 
     // fields for ACTIVITY
     private String name;
     private String description;
     private String icon;
-    private Integer count; // for stats
 
     // fields for PROMPT
     private String question;
-    private List<String> answers;
-    private List<Integer> answersCount; // for stats
+    private List<AnswerCatalogEventDTO> answers;
 
-    public CatalogEventDTO(CatalogEvent catalogEvent, Integer count, List<Integer> answersCount) {
+    private CatalogEventDTO(CatalogEvent catalogEvent) {
         this.catalogEventId = catalogEvent.getCatalogEventId();
         this.type = catalogEvent.getType();
         this.belongsTo = catalogEvent.getBelongsTo();
+        this.count = catalogEvent.getCount();
+    }
 
-        this.name = catalogEvent.getName();
-        this.description = catalogEvent.getDescription();
-        this.icon = catalogEvent.getIcon();
-        this.count = count;
+    public static CatalogEventDTO createForActivity(CatalogEvent catalogEvent) {
+        CatalogEventDTO catalogEventDTO = new CatalogEventDTO(catalogEvent);
+        catalogEventDTO.setName(catalogEvent.getName());
+        catalogEventDTO.setDescription(catalogEvent.getDescription());
+        catalogEventDTO.setIcon(catalogEvent.getIcon());
+        return catalogEventDTO;
+    }
 
-        this.question = catalogEvent.getQuestion();
-        this.answers = catalogEvent.getAnswers();
-        this.answersCount = answersCount;
+    public static CatalogEventDTO createForPrompt(CatalogEvent catalogEvent, List<AnswerCatalogEventDTO> answers) {
+        CatalogEventDTO catalogEventDTO = new CatalogEventDTO(catalogEvent);
+        catalogEventDTO.setQuestion(catalogEvent.getQuestion());
+        catalogEventDTO.setAnswers(answers);
+        return catalogEventDTO;
     }
 }

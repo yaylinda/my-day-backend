@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import yay.linda.mydaybackend.entity.Day;
+import yay.linda.mydaybackend.model.CountUpdateType;
 import yay.linda.mydaybackend.model.DayDTO;
 import yay.linda.mydaybackend.model.DayEventDTO;
 import yay.linda.mydaybackend.model.EventType;
@@ -35,6 +36,9 @@ public class DayService {
 
     @Autowired
     private SessionService sessionService;
+
+    @Autowired
+    private CatalogEventService catalogEventService;
 
     // issue might arise later where a user will have many Days. we should not have to load the entire list.
     // user query params for pagination
@@ -101,6 +105,7 @@ public class DayService {
                         .build();
                 day.getActivities().add(newActivityDTO);
                 LOGGER.info("Adding ACTIVITY to day");
+                catalogEventService.updateCount(dayEvent.getCatalogEventId(), CountUpdateType.INCREMENT);
                 break;
             case EMOTION:
                 DayEventDTO newEmotionDTO = DayEventDTO.builder()
@@ -126,6 +131,7 @@ public class DayService {
                         .build();
                 day.getPrompts().add(newPromptDTO);
                 LOGGER.info("Adding PROMPT to day");
+                catalogEventService.updateCount(dayEvent.getCatalogEventId(), CountUpdateType.INCREMENT);
                 break;
         }
 
@@ -162,8 +168,12 @@ public class DayService {
             case PROMPT:
                 day.getPrompts().forEach(p -> {
                     if (p.getDayEventId().equalsIgnoreCase(dayEventId)) {
+                        // When updating PROMPT, only time and selected answer can be changed
+                        String oldSelectedAnswer = p.getSelectedAnswer();
                         p.setStartTime(dayEvent.getStartTime());
                         p.setSelectedAnswer(dayEvent.getSelectedAnswer());
+                        catalogEventService.updateAnswersCount(dayEvent.getCatalogEventId(), oldSelectedAnswer, CountUpdateType.DECREMENT);
+                        catalogEventService.updateAnswersCount(dayEvent.getCatalogEventId(), dayEvent.getSelectedAnswer(), CountUpdateType.INCREMENT);
                     }
                 });
                 break;
@@ -187,7 +197,9 @@ public class DayService {
             case ACTIVITY:
                 index = findDayEventIndexById(dayEventId, day.getActivities());
                 if (index > -1) {
+                    String catalogEventId = day.getActivities().get(index).getCatalogEventId();
                     day.getActivities().remove(index);
+                    catalogEventService.updateCount(catalogEventId, CountUpdateType.DECREMENT);
                 }
                 break;
             case EMOTION:
@@ -199,7 +211,11 @@ public class DayService {
             case PROMPT:
                 index = findDayEventIndexById(dayEventId, day.getPrompts());
                 if (index > -1) {
+                    String catalogEventId = day.getPrompts().get(index).getCatalogEventId();
+                    String selectedAnswer = day.getPrompts().get(index).getSelectedAnswer();
                     day.getPrompts().remove(index);
+                    catalogEventService.updateCount(catalogEventId, CountUpdateType.DECREMENT);
+                    catalogEventService.updateAnswersCount(catalogEventId, selectedAnswer, CountUpdateType.DECREMENT);
                 }
                 break;
         }

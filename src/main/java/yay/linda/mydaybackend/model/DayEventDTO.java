@@ -37,6 +37,7 @@ public class DayEventDTO implements Comparable<DayEventDTO> {
     private String selectedAnswer;
 
     // fields for all three
+    private String catalogEventId;
     private String startTime; // TODO: we are HEAVILY assuming that the format is `hh:mm a`. Maybe make this LocalTime
     private String dayEventId;
     private String timezone;

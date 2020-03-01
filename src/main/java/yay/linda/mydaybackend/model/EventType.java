@@ -4,5 +4,6 @@ public enum EventType {
     ACTIVITY,
     EMOTION,
     PROMPT,
+    ANSWER,
     ALL
 }

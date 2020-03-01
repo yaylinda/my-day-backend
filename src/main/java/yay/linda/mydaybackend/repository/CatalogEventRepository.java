@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public interface CatalogEventRepository extends MongoRepository<CatalogEvent, String> {
 
+    List<CatalogEvent> findByBelongsTo(String belongsTo);
+
     List<CatalogEvent> findByBelongsToAndType(String belongsTo, EventType type);
 
     Optional<CatalogEvent> findByCatalogEventId(String catalogEventId);

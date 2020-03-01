@@ -13,4 +13,6 @@ public interface DayRepository extends MongoRepository<Day, String> {
     List<Day> findTop10ByUsernameOrderByDateDesc(String username);
 
     List<Day> findByUsernameOrderByDateDesc(String username);
+
+    List<Day> findByUsername(String username);
 }
