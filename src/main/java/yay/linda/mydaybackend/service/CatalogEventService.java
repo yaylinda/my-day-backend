@@ -1,20 +1,25 @@
 package yay.linda.mydaybackend.service;
 
+import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import yay.linda.mydaybackend.entity.CatalogEvent;
+import yay.linda.mydaybackend.model.CatalogEventDTO;
 import yay.linda.mydaybackend.model.EventType;
 import yay.linda.mydaybackend.repository.CatalogEventRepository;
 import yay.linda.mydaybackend.repository.DayRepository;
 import yay.linda.mydaybackend.web.error.NotFoundException;
 
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class CatalogEventService {
@@ -30,41 +35,45 @@ public class CatalogEventService {
     @Autowired
     private DayRepository dayRepository;
 
-    public Map<String, List<CatalogEvent>> getCatalogEvents(String sessionToken) {
+    public Map<String, List<CatalogEventDTO>> getCatalogEvents(String sessionToken) {
 
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
-        Map<String, List<CatalogEvent>> catalogs = new HashMap<>();
+        Map<String, List<CatalogEventDTO>> catalogs = new HashMap<>();
 
         Arrays.stream(EventType.values()).forEach(t -> {
             List<CatalogEvent> list = catalogEventRepository.findByBelongsToAndType(username, t);
             LOGGER.info("Found {} CatalogEvent for {} of type {}", list.size(), username, t);
-            catalogs.put(t.name(), list);
+            catalogs.put(t.name(), list.stream()
+                    .map(this::convertAndGetCounts)
+                    .collect(Collectors.toList()));
         });
 
         return catalogs;
     }
 
-    public List<CatalogEvent> addCatalogEvent(String eventType, CatalogEvent catalogEvent, String sessionToken) {
+    public List<CatalogEventDTO> addCatalogEvent(String eventType, CatalogEventDTO catalogEventDTO, String sessionToken) {
 
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         // TODO - validate eventType, and fields of dayEventCatalogDTO
-        catalogEvent.setCatalogEventId(UUID.randomUUID().toString());
-        catalogEvent.setType(EventType.valueOf(eventType));
-        catalogEvent.setBelongsTo(username);
+        catalogEventDTO.setCatalogEventId(UUID.randomUUID().toString());
+        catalogEventDTO.setType(EventType.valueOf(eventType));
+        catalogEventDTO.setBelongsTo(username);
 
-        catalogEventRepository.save(catalogEvent);
-        LOGGER.info("Persisted new CatalogEvent: {}", catalogEvent);
+        catalogEventRepository.save(new CatalogEvent(catalogEventDTO));
+        LOGGER.info("Persisted new CatalogEvent: {}", catalogEventDTO);
 
-        List<CatalogEvent> list = catalogEventRepository.findByBelongsToAndType(username, catalogEvent.getType());
+        List<CatalogEvent> list = catalogEventRepository.findByBelongsToAndType(username, catalogEventDTO.getType());
 
         LOGGER.info("Returning {} CatalogEvent of type {} for {}", list.size(), eventType, username);
 
-        return list;
+        return list.stream()
+                .map(this::convertAndGetCounts)
+                .collect(Collectors.toList());
     }
 
-    public List<CatalogEvent> updateCatalogEvent(String eventType, String catalogEventId, CatalogEvent catalogEvent, String sessionToken) {
+    public List<CatalogEventDTO> updateCatalogEvent(String eventType, String catalogEventId, CatalogEventDTO catalogEventDTO, String sessionToken) {
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         CatalogEvent existing = catalogEventRepository.findByCatalogEventId(catalogEventId)
@@ -73,12 +82,12 @@ public class CatalogEventService {
         switch (existing.getType()) {
             case ACTIVITY:
                 // Can only update description of ACTIVITY catalog events
-                existing.setIcon(catalogEvent.getIcon());
-                existing.setDescription(catalogEvent.getDescription());
+                existing.setIcon(catalogEventDTO.getIcon());
+                existing.setDescription(catalogEventDTO.getDescription());
                 break;
             case PROMPT:
                 // Can only update answers of PROMPT catalog events
-                existing.setAnswers(catalogEvent.getAnswers());
+                existing.setAnswers(catalogEventDTO.getAnswers());
                 break;
             default:
                 LOGGER.warn("Attempting to update CatalogEvent of type={}, with id={}. Not allowed.", eventType, catalogEventId);
@@ -86,16 +95,18 @@ public class CatalogEventService {
         }
 
         catalogEventRepository.save(existing);
-        LOGGER.info("Persisted updated CatalogEvent: {}", catalogEvent);
+        LOGGER.info("Persisted updated CatalogEvent: {}", catalogEventDTO);
 
         List<CatalogEvent> list = catalogEventRepository.findByBelongsToAndType(username, existing.getType());
 
         LOGGER.info("Returning {} CatalogEvent of type {} for {}", list.size(), eventType, username);
 
-        return list;
+        return list.stream()
+                .map(this::convertAndGetCounts)
+                .collect(Collectors.toList());
     }
 
-    public List<CatalogEvent> deleteCatalogEvent(String eventType, String catalogEventId, String sessionToken) {
+    public List<CatalogEventDTO> deleteCatalogEvent(String eventType, String catalogEventId, String sessionToken) {
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         CatalogEvent existing = catalogEventRepository.findByCatalogEventId(catalogEventId)
@@ -108,6 +119,28 @@ public class CatalogEventService {
 
         LOGGER.info("Returning {} CatalogEvent of type {} for {}", list.size(), eventType, username);
 
-        return list;
+        return list.stream()
+                .map(this::convertAndGetCounts)
+                .collect(Collectors.toList());
+    }
+
+    private CatalogEventDTO convertAndGetCounts(CatalogEvent catalogEvent) {
+        return new CatalogEventDTO(catalogEvent, getActivityCounts(catalogEvent), getAnswersCounts(catalogEvent));
+    }
+
+    private Integer getActivityCounts(CatalogEvent catalogEvent) {
+        if (!EventType.ACTIVITY.equals(catalogEvent.getType())) {
+            return null;
+        }
+
+        return 0; // TODO - calculation
+    }
+
+    private List<Integer> getAnswersCounts(CatalogEvent catalogEvent) {
+        if (!EventType.PROMPT.equals(catalogEvent.getType())) {
+            return null;
+        }
+
+        return new ArrayList<>(); // TODO - calculation
     }
 }
