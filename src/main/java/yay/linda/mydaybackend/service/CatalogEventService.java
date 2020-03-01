@@ -48,19 +48,22 @@ public class CatalogEventService {
                 .collect(Collectors.groupingBy(CatalogEvent::getType));
 
         // Group all user's CatalogEvent Answers by parent question catalogEventId
-        Map<String, List<CatalogEvent>> promptIdToAnswersMap = catalogEventsByType.get(ANSWER).stream()
+        Map<String, List<CatalogEvent>> promptIdToAnswersMap = catalogEventsByType.getOrDefault(ANSWER, new ArrayList<>()).stream()
                 .collect(Collectors.groupingBy(CatalogEvent::getParentQuestionCatalogEventId));
 
         Map<String, List<CatalogEventDTO>> catalogs = new HashMap<>();
 
         catalogs.put(
                 ACTIVITY.name(),
-                convertActivityCatalogEvents(catalogEventsByType.get(ACTIVITY))
+                convertActivityCatalogEvents(catalogEventsByType.getOrDefault(ACTIVITY, new ArrayList<>()))
         );
 
         catalogs.put(
                 PROMPT.name(),
-                convertPromptCatalogEvents(catalogEventsByType.get(PROMPT), catalogEventsByType.get(ANSWER))
+                convertPromptCatalogEvents(
+                        catalogEventsByType.getOrDefault(PROMPT, new ArrayList<>()),
+                        catalogEventsByType.getOrDefault(ANSWER, new ArrayList<>())
+                )
         );
 
         return catalogs;

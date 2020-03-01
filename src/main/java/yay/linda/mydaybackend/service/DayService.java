@@ -119,20 +119,22 @@ public class DayService {
                         .build();
                 day.getActivities().add(newActivityDTO);
                 LOGGER.info("Adding ACTIVITY to day");
-                catalogEventService.updateCount(dayEvent.getCatalogEventId(), newActivityDTO.getType(), INCREMENT);
+                catalogEventService.updateCount(dayEvent.getCatalogEventId(), ACTIVITY, INCREMENT);
                 break;
             case PROMPT:
                 DayEventDTO newPromptDTO = DayEventDTO.builder()
                         .type(PROMPT)
                         .question(dayEvent.getQuestion())
                         .selectedAnswer(dayEvent.getSelectedAnswer())
+                        .selectedAnswerCatalogEventId(dayEvent.getSelectedAnswerCatalogEventId())
                         .startTime(dayEvent.getStartTime())
                         .timezone(timezone)
                         .dayEventId(UUID.randomUUID().toString())
                         .build();
                 day.getPrompts().add(newPromptDTO);
                 LOGGER.info("Adding PROMPT to day");
-                catalogEventService.updateCount(dayEvent.getCatalogEventId(), newPromptDTO.getType(), INCREMENT);
+                catalogEventService.updateCount(dayEvent.getCatalogEventId(), PROMPT, INCREMENT);
+                catalogEventService.updateCount(dayEvent.getSelectedAnswerCatalogEventId(), ANSWER, INCREMENT);
                 break;
         }
 
