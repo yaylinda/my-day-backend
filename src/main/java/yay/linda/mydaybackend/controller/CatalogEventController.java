@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import yay.linda.mydaybackend.entity.DayEventCatalog;
-import yay.linda.mydaybackend.service.DayEventCatalogService;
+import yay.linda.mydaybackend.entity.CatalogEvent;
+import yay.linda.mydaybackend.service.CatalogEventService;
 import yay.linda.mydaybackend.web.error.ErrorDTO;
 
 import java.util.List;
@@ -34,12 +34,12 @@ import static yay.linda.mydaybackend.web.error.ErrorMessages.UNEXPECTED_ERROR;
 @RestController
 @RequestMapping("/catalog/events")
 @CrossOrigin
-public class DayEventCatalogController {
+public class CatalogEventController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DayEventCatalogController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CatalogEventController.class);
 
     @Autowired
-    private DayEventCatalogService dayEventCatalogService;
+    private CatalogEventService catalogEventService;
 
     @GetMapping(
             value = "",
@@ -50,11 +50,11 @@ public class DayEventCatalogController {
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<Map<String, List<DayEventCatalog>>> getCatalogEvents(
+    public ResponseEntity<Map<String, List<CatalogEvent>>> getCatalogEvents(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
         LOGGER.info("GET Day Event Catalog request: sessionToken={}", sessionToken);
-        return ResponseEntity.ok(dayEventCatalogService.getCatalogEvents(sessionToken));
+        return ResponseEntity.ok(catalogEventService.getCatalogEvents(sessionToken));
     }
 
     @PostMapping(
@@ -67,16 +67,16 @@ public class DayEventCatalogController {
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<List<DayEventCatalog>> addCatalog(
+    public ResponseEntity<List<CatalogEvent>> addCatalog(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken,
             @ApiParam(value = "eventType", required = true)
             @PathVariable(value = "eventType") String eventType,
-            @ApiParam(value = "dayEventCatalog", required = true)
-            @RequestBody DayEventCatalog dayEventCatalog) {
-        LOGGER.info("POST Day Event Catalog request: eventType={}, dayEventCatalog={}, sessionToken={}",
-                eventType, dayEventCatalog, sessionToken);
-        return ResponseEntity.ok(dayEventCatalogService.addCatalogEvent(eventType, dayEventCatalog, sessionToken));
+            @ApiParam(value = "catalogEvent", required = true)
+            @RequestBody CatalogEvent catalogEvent) {
+        LOGGER.info("POST Day Event Catalog request: eventType={}, catalogEvent={}, sessionToken={}",
+                eventType, catalogEvent, sessionToken);
+        return ResponseEntity.ok(catalogEventService.addCatalogEvent(eventType, catalogEvent, sessionToken));
     }
 
     @PutMapping(
@@ -89,18 +89,18 @@ public class DayEventCatalogController {
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<List<DayEventCatalog>> updateCatalog(
+    public ResponseEntity<List<CatalogEvent>> updateCatalog(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken,
             @ApiParam(value = "eventType", required = true)
             @PathVariable(value = "eventType") String eventType,
             @ApiParam(value = "catalogEventId", required = true)
             @PathVariable(value = "catalogEventId") String catalogEventId,
-            @ApiParam(value = "dayEventCatalog", required = true)
-            @RequestBody DayEventCatalog dayEventCatalog) {
-        LOGGER.info("POST Day Event Catalog request: eventType={}, catalogEventId={}, dayEventCatalog={}, sessionToken={}",
-                eventType, catalogEventId, dayEventCatalog, sessionToken);
-        return ResponseEntity.ok(dayEventCatalogService.updateCatalogEvent(eventType, catalogEventId, dayEventCatalog, sessionToken));
+            @ApiParam(value = "catalogEvent", required = true)
+            @RequestBody CatalogEvent catalogEvent) {
+        LOGGER.info("POST Day Event Catalog request: eventType={}, catalogEventId={}, catalogEvent={}, sessionToken={}",
+                eventType, catalogEventId, catalogEvent, sessionToken);
+        return ResponseEntity.ok(catalogEventService.updateCatalogEvent(eventType, catalogEventId, catalogEvent, sessionToken));
     }
 
     @DeleteMapping(
@@ -113,7 +113,7 @@ public class DayEventCatalogController {
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<List<DayEventCatalog>> deleteCatalog(
+    public ResponseEntity<List<CatalogEvent>> deleteCatalog(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken,
             @ApiParam(value = "eventType", required = true)
@@ -122,6 +122,6 @@ public class DayEventCatalogController {
             @PathVariable(value = "catalogEventId") String catalogEventId) {
         LOGGER.info("POST Day Event Catalog request: eventType={}, catalogEventId={}, sessionToken={}",
                 eventType, catalogEventId, sessionToken);
-        return ResponseEntity.ok(dayEventCatalogService.deleteCatalogEvent(eventType, catalogEventId, sessionToken));
+        return ResponseEntity.ok(catalogEventService.deleteCatalogEvent(eventType, catalogEventId, sessionToken));
     }
 }

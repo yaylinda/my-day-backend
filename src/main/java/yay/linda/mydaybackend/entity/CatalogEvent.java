@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DayEventCatalog {
+public class CatalogEvent {
 
     @Id
     private String catalogEventId;
@@ -22,10 +22,14 @@ public class DayEventCatalog {
     private String name;
     private String description;
     private String icon;
-    private String color;
+    private String color; // not used
 
     // fields for PromptCatalogDTO
     private String question;
     private List<String> answers;
-    private Boolean allowMultiSelect;
+    private Boolean allowMultiSelect; // not used
+
+    // fields for stats
+    private Integer count;
+    private List<Integer> answersCount;
 }
