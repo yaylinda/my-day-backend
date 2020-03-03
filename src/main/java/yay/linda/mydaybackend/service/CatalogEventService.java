@@ -62,7 +62,7 @@ public class CatalogEventService {
                 PROMPT.name(),
                 convertPromptCatalogEvents(
                         catalogEventsByType.getOrDefault(PROMPT, new ArrayList<>()),
-                        catalogEventsByType.getOrDefault(ANSWER, new ArrayList<>())
+                        promptIdToAnswersMap
                 )
         );
 
@@ -179,7 +179,8 @@ public class CatalogEventService {
             case PROMPT:
                 return convertPromptCatalogEvents(
                         catalogEventRepository.findByBelongsToAndType(username, PROMPT),
-                        catalogEventRepository.findByBelongsToAndType(username, ANSWER)
+                        catalogEventRepository.findByBelongsToAndType(username, ANSWER).stream()
+                                .collect(Collectors.groupingBy(CatalogEvent::getParentQuestionCatalogEventId))
                 );
             default:
                 LOGGER.warn("Unsupported EventType: {}, for method returnCatalogEventsForUser()", type);
@@ -193,9 +194,9 @@ public class CatalogEventService {
                 .collect(Collectors.toList());
     }
 
-    private List<CatalogEventDTO> convertPromptCatalogEvents(List<CatalogEvent> prompts, List<CatalogEvent> answers) {
+    private List<CatalogEventDTO> convertPromptCatalogEvents(List<CatalogEvent> prompts, Map<String, List<CatalogEvent>> answersMap) {
         return prompts.stream()
-                .map(p -> CatalogEventDTO.createForPrompt(p, convertAnswerCatalogEvents(answers)))
+                .map(p -> CatalogEventDTO.createForPrompt(p, convertAnswerCatalogEvents(answersMap.getOrDefault(p.getCatalogEventId(), new ArrayList<>()))))
                 .collect(Collectors.toList());
     }
 
