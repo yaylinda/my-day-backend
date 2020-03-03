@@ -14,4 +14,6 @@ public interface CatalogEventRepository extends MongoRepository<CatalogEvent, St
     List<CatalogEvent> findByBelongsToAndType(String belongsTo, EventType type);
 
     Optional<CatalogEvent> findByCatalogEventId(String catalogEventId);
+
+    void deleteByParentQuestionCatalogEventId(String parentQuestionCatalogEventId);
 }

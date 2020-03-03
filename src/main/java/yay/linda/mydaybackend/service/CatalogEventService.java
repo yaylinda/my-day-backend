@@ -119,6 +119,9 @@ public class CatalogEventService {
                 LOGGER.info("Persisted updates for ACTIVITY CatalogEvent");
                 break;
             case PROMPT:
+                // Delete existing
+                catalogEventRepository.deleteByParentQuestionCatalogEventId(existing.getCatalogEventId());
+
                 // Can only update answers related to PROMPT catalog events
                 List<CatalogEvent> toSave = new ArrayList<>();
                 catalogEventDTO.getAnswers().forEach(a -> {
@@ -126,7 +129,7 @@ public class CatalogEventService {
                         a.setCatalogEventId(UUID.randomUUID().toString());
                         a.setBelongsTo(username);
                         a.setCount(0);
-                        a.setParentQuestionCatalogEventId(catalogEventDTO.getCatalogEventId());
+                        a.setParentQuestionCatalogEventId(existing.getCatalogEventId());
                     }
                     toSave.add(CatalogEvent.createForAnswer(a));
                 });
@@ -161,7 +164,7 @@ public class CatalogEventService {
         CatalogEvent existing = catalogEventRepository.findByCatalogEventId(catalogEventId)
                 .orElseThrow(() -> NotFoundException.catalogEventNotFound(eventType.name(), catalogEventId));
 
-        LOGGER.info("{} count for catalogEventId={}", countUpdateType, catalogEventId);
+        LOGGER.info("{} count for catalogEventId={} of type {}", countUpdateType, catalogEventId, eventType);
 
         existing.setCount(existing.getCount() + countUpdateType.getAmount());
         catalogEventRepository.save(existing);
