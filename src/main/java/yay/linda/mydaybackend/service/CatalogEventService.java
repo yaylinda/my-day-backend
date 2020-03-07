@@ -205,46 +205,4 @@ public class CatalogEventService {
                 .map(AnswerCatalogEventDTO::new)
                 .collect(Collectors.toList());
     }
-
-    /*
-    // These methods are not used anymore, since we are storing the counts / usage of catalog events
-
-    private Map<String, Integer> calculateCountsByActivity(String username, List<String> activities) {
-        Map<String, Integer> countsByActivity = activities.stream()
-                .collect(Collectors.toMap(
-                        a -> a,
-                        a -> 0
-                ));
-
-        dayRepository.findByUsername(username)
-                .forEach(d -> d.getActivities()
-                        .forEach(a -> countsByActivity.computeIfPresent(a.getName(), (k, v) -> v += 1)));
-
-        return countsByActivity;
-    }
-
-    private Map<String, Map<String, Integer>> calculateCountsByPrompt(String username, Map<String, List<String>> promptsAndAnswers) {
-        Map<String, Map<String, Integer>> countsByPrompt = promptsAndAnswers.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        e -> e.getValue().stream()
-                                .collect(Collectors.toMap(
-                                        a -> a,
-                                        a -> 0
-                                ))
-                ));
-
-        dayRepository.findByUsername(username)
-                .forEach(d -> d.getPrompts()
-                        .forEach(p -> {
-                            if (countsByPrompt.containsKey(p.getQuestion())) {
-                                countsByPrompt.get(p.getQuestion())
-                                        .computeIfPresent(p.getSelectedAnswer(), (k, v) -> v += 1);
-                            }
-                        })
-                );
-
-        return countsByPrompt;
-    }
-    */
 }
