@@ -102,6 +102,7 @@ public class DayService {
                         .startTime(dayEvent.getStartTime())
                         .timezone(timezone)
                         .dayEventId(UUID.randomUUID().toString())
+                        .catalogEventId(dayEvent.getCatalogEventId())
                         .build();
                 day.getEmotions().add(newEmotionDTO);
                 LOGGER.info("Adding EMOTION to day");
@@ -116,6 +117,7 @@ public class DayService {
                         .startTime(dayEvent.getStartTime())
                         .timezone(timezone)
                         .dayEventId(UUID.randomUUID().toString())
+                        .catalogEventId(dayEvent.getCatalogEventId())
                         .build();
                 day.getActivities().add(newActivityDTO);
                 LOGGER.info("Adding ACTIVITY to day");
@@ -130,6 +132,7 @@ public class DayService {
                         .startTime(dayEvent.getStartTime())
                         .timezone(timezone)
                         .dayEventId(UUID.randomUUID().toString())
+                        .catalogEventId(dayEvent.getCatalogEventId())
                         .build();
                 day.getPrompts().add(newPromptDTO);
                 LOGGER.info("Adding PROMPT to day");

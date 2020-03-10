@@ -49,4 +49,18 @@ public class StatsController {
         LOGGER.info("GET stats request: sessionToken={}", sessionToken);
         return ResponseEntity.ok(statsService.getTileStats(sessionToken));
     }
+
+    @GetMapping(value = "/summary", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Computes Summary Stats for a User, given a valid Session-Token")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully computed Stats"),
+            @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
+            @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
+    })
+    public ResponseEntity<Map<String, Number>> getSummaryStats(
+            @ApiParam(value = "Session-Token", required = true)
+            @RequestHeader("Session-Token") String sessionToken) {
+        LOGGER.info("GET stats request: sessionToken={}", sessionToken);
+        return ResponseEntity.ok(statsService.getSummaryStats(sessionToken));
+    }
 }
