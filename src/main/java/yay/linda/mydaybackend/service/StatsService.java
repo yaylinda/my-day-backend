@@ -123,7 +123,7 @@ public class StatsService {
                 .collect(Collectors.groupingBy(DayEventDTO::getCatalogEventId));
 
         statsMap.put("totalNumPrompts", promptsById.values().stream().mapToLong(List::size).sum());
-        statsMap.put("numUniuePrompts", promptsById.size());
+        statsMap.put("numUniquePrompts", promptsById.size());
 
         return statsMap;
     }
