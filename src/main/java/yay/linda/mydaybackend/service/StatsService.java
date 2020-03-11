@@ -8,6 +8,7 @@ import yay.linda.mydaybackend.entity.CatalogEvent;
 import yay.linda.mydaybackend.entity.Day;
 import yay.linda.mydaybackend.model.DayEventDTO;
 import yay.linda.mydaybackend.model.EventType;
+import yay.linda.mydaybackend.model.StatsDTO;
 import yay.linda.mydaybackend.model.TileDataDTO;
 import yay.linda.mydaybackend.repository.CatalogEventRepository;
 import yay.linda.mydaybackend.repository.DayRepository;
@@ -28,6 +29,7 @@ public class StatsService {
     private static final Logger LOGGER = LoggerFactory.getLogger(StatsService.class);
 
     private static final String SCORE_KEY = "Scores";
+
     @Autowired
     private DayRepository dayRepository;
 
@@ -40,10 +42,18 @@ public class StatsService {
     @Autowired
     private AggregationService aggregationService;
 
-    public Map<String, List<TileDataDTO>> getTileStats(String sessionToken) {
+    public StatsDTO getStats(String sessionToken) {
         String username = sessionService.getUsernameFromSessionToken(sessionToken);
 
         List<Day> days = dayRepository.findByUsernameOrderByDateDesc(username);
+
+        return StatsDTO.builder()
+                .tiles(getTileStats(username, days))
+                .summary(getSummaryStats(username, days))
+                .build();
+    }
+
+    private Map<String, List<TileDataDTO>> getTileStats(String username, List<Day> days) {
 
         List<CatalogEvent> allActivities = catalogEventRepository.findByBelongsToAndType(username, ACTIVITY);
 
@@ -87,9 +97,7 @@ public class StatsService {
         return tileStats;
     }
 
-    public Map<String, Number> getSummaryStats(String sessionToken) {
-        String username = sessionService.getUsernameFromSessionToken(sessionToken);
-        List<Day> days = dayRepository.findByUsernameOrderByDateDesc(username);
+    private Map<String, Number> getSummaryStats(String username, List<Day> days) {
 
         Map<String, Number> statsMap = new HashMap<>();
         statsMap.put("totalNumDays", days.size());
@@ -127,5 +135,4 @@ public class StatsService {
 
         return statsMap;
     }
-
 }

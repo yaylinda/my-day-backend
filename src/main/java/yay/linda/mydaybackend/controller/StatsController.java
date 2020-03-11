@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import yay.linda.mydaybackend.model.StatsDTO;
 import yay.linda.mydaybackend.model.TileDataDTO;
 import yay.linda.mydaybackend.service.StatsService;
 import yay.linda.mydaybackend.web.error.ErrorDTO;
@@ -36,31 +37,17 @@ public class StatsController {
     @Autowired
     private StatsService statsService;
 
-    @GetMapping(value = "/tiles", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Computes Tile Stats for a User, given a valid Session-Token")
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Computes Tile and Summary Stats for a User, given a valid Session-Token")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully computed Stats"),
             @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
             @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
     })
-    public ResponseEntity<Map<String, List<TileDataDTO>>> getTileStats(
+    public ResponseEntity<StatsDTO> getStats(
             @ApiParam(value = "Session-Token", required = true)
             @RequestHeader("Session-Token") String sessionToken) {
         LOGGER.info("GET stats request: sessionToken={}", sessionToken);
-        return ResponseEntity.ok(statsService.getTileStats(sessionToken));
-    }
-
-    @GetMapping(value = "/summary", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Computes Summary Stats for a User, given a valid Session-Token")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Successfully computed Stats"),
-            @ApiResponse(code = 403, message = UNAUTHORIZED, response = ErrorDTO.class),
-            @ApiResponse(code = 500, message = UNEXPECTED_ERROR, response = ErrorDTO.class)
-    })
-    public ResponseEntity<Map<String, Number>> getSummaryStats(
-            @ApiParam(value = "Session-Token", required = true)
-            @RequestHeader("Session-Token") String sessionToken) {
-        LOGGER.info("GET stats request: sessionToken={}", sessionToken);
-        return ResponseEntity.ok(statsService.getSummaryStats(sessionToken));
+        return ResponseEntity.ok(statsService.getStats(sessionToken));
     }
 }
