@@ -16,12 +16,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import yay.linda.mydaybackend.model.StatsDTO;
-import yay.linda.mydaybackend.model.TileDataDTO;
 import yay.linda.mydaybackend.service.StatsService;
 import yay.linda.mydaybackend.web.error.ErrorDTO;
-
-import java.util.List;
-import java.util.Map;
 
 import static yay.linda.mydaybackend.web.error.ErrorMessages.UNAUTHORIZED;
 import static yay.linda.mydaybackend.web.error.ErrorMessages.UNEXPECTED_ERROR;
